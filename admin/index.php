@@ -528,7 +528,6 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>🐐 Admin Login</h2>
-                    <p>Please enter your credentials to access the Goat Gallery</p>
                 </div>
                 <form method="POST">
                     <div class="form-group">
@@ -539,7 +538,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" name="login" class="btn" style="width: 100%;">Login</button>
+                    <button type="submit" name="login" class="btn" style="width: 100%; text-align: center;">Login</button>
                     <?php if (isset($loginError)): ?>
                         <div class="login-error"><?php echo htmlspecialchars($loginError); ?></div>
                     <?php endif; ?>
