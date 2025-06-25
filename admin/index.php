@@ -8,9 +8,9 @@ $perPage = 12;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
-// Simple auth credentials (in production, use hashed passwords)
-$adminUsername = 'admin';
-$adminPassword = 'mko0)OKM'; // Change this!
+// Admin credentials from environment variables
+$adminUsername = $_ENV['ADMIN_USERNAME'] ?? getenv('ADMIN_USERNAME');
+$adminPassword = $_ENV['ADMIN_PASSWORD'] ?? getenv('ADMIN_PASSWORD');
 
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
