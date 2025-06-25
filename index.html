@@ -554,31 +554,7 @@
             animation: slideIn 0.3s ease;
         }
 
-        /* Preload indicator */
-        .preload-indicator {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: linear-gradient(135deg, rgba(0, 255, 136, 0.8), rgba(0, 204, 106, 0.8));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            padding: 8px 16px;
-            color: white;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
-            z-index: 40;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
-        }
 
-        .preload-indicator.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translate(-50%, -60%); }
@@ -610,12 +586,7 @@
                 gap: 6px;
             }
 
-            .preload-indicator {
-                top: 15px;
-                left: 15px;
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
+
 
             .modal {
                 width: 95%;
@@ -663,9 +634,7 @@
             <span>🔗</span>
         </button>
 
-        <div class="preload-indicator" id="preloadIndicator">
-            🚀 <span id="preloadCount">0</span>/5 ready
-        </div>
+
 
         <div class="gif-container" id="gifContainer">
             <div class="gif-layer" id="layer1">
@@ -760,9 +729,7 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode'),
-                    preloadIndicator: document.getElementById('preloadIndicator'),
-                    preloadCount: document.getElementById('preloadCount')
+                    embedCode: document.getElementById('embedCode')
                 };
                 
                 this.init();
@@ -863,11 +830,6 @@
                         // Start aggressive preloading
                         this.startPreloadMaintenance();
                         
-                        // Show preload indicator after a delay
-                        setTimeout(() => {
-                            this.elements.preloadIndicator.classList.add('show');
-                        }, 2000);
-                        
                     }, 600);
                 }, 1500);
             }
@@ -876,10 +838,9 @@
                 // Check if we're running inside an iframe
                 if (window.self !== window.top) {
                     this.isEmbedded = true;
-                    // We're embedded, hide the embed button, seasonal mascot, and preload indicator
+                    // We're embedded, hide the embed button and seasonal mascot
                     this.elements.embedButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
-                    this.elements.preloadIndicator.style.display = 'none';
                 } else {
                     this.isEmbedded = false;
                     // We're not embedded, disable logo clicks
@@ -1034,7 +995,6 @@
                     img.onload = () => {
                         this.preloadedGifs.set(gifId, gifUrl);
                         this.preloadQueue.delete(gifId);
-                        this.updatePreloadIndicator();
                         resolve(gifUrl);
                     };
                     
@@ -1094,23 +1054,7 @@
                 }, 2000); // Check every 2 seconds
             }
             
-            updatePreloadIndicator() {
-                const count = this.preloadedGifs.size;
-                this.elements.preloadCount.textContent = count;
-                
-                // Change color based on preload status
-                if (count >= this.targetPreloadCount) {
-                    this.elements.preloadIndicator.style.background = 
-                        'linear-gradient(135deg, rgba(0, 255, 136, 0.8), rgba(0, 204, 106, 0.8))';
-                } else if (count >= 3) {
-                    this.elements.preloadIndicator.style.background = 
-                        'linear-gradient(135deg, rgba(255, 193, 7, 0.8), rgba(255, 152, 0, 0.8))';
-                } else {
-                    this.elements.preloadIndicator.style.background = 
-                        'linear-gradient(135deg, rgba(255, 107, 107, 0.8), rgba(255, 87, 87, 0.8))';
-                }
-            }
-            
+
             getNextPreloadedGif() {
                 // Get a random preloaded gif
                 const preloadedIds = Array.from(this.preloadedGifs.keys());
@@ -1212,7 +1156,6 @@
                         gifUrl = preloadedGif.url;
                         // Remove from preloaded gifs since we're using it
                         this.preloadedGifs.delete(gifId);
-                        this.updatePreloadIndicator();
                     } else {
                         // Fallback to loading a new gif
                         gifId = this.getRandomGifId();
