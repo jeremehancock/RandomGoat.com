@@ -213,27 +213,6 @@
             }
         }
 
-        .click-hint {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-            padding: 15px 25px;
-            border-radius: 25px;
-            font-size: 1.1rem;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: 30;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-        }
-
-        .click-hint.show {
-            opacity: 1;
-        }
-
         .logo {
             position: fixed;
             bottom: 20px;
@@ -586,11 +565,6 @@
             .splash-screen h1 {
                 font-size: 2rem;
             }
-            
-            .click-hint {
-                padding: 12px 20px;
-                font-size: 1rem;
-            }
 
             .logo {
                 bottom: 15px;
@@ -669,10 +643,6 @@
             <div class="progress-bar" id="progressBar"></div>
         </div>
 
-        <div class="click-hint" id="clickHint">
-            🖱️ Click/Tap for next goat
-        </div>
-
         <a href="https://randomgoat.com" target="_blank" class="logo" id="logo">
             <span class="goat-icon">🐐</span>
             <span class="site-text">randomgoat.com</span>
@@ -745,7 +715,6 @@
                     layer2: document.getElementById('layer2'),
                     loadingOverlay: document.getElementById('loadingOverlay'),
                     progressBar: document.getElementById('progressBar'),
-                    clickHint: document.getElementById('clickHint'),
                     logo: document.getElementById('logo'),
                     seasonalMascot: document.getElementById('seasonalMascot'),
                     embedButton: document.getElementById('embedButton'),
@@ -777,12 +746,6 @@
                             this.elements.urlInfo.classList.remove('show');
                         }, 5000);
                     }, 1000);
-                }
-            }
-
-            updateClickHintForSpecificGif() {
-                if (this.isShowingSpecificGif) {
-                    this.elements.clickHint.textContent = '🖱️ Click/Tap for random goat';
                 }
             }
             
@@ -856,7 +819,6 @@
                             this.nextGif();
                         }
                         
-                        this.showClickHint();
                         this.preloadNextGifs();
                     }, 600);
                 }, 1500);
@@ -983,15 +945,6 @@
                 setTimeout(() => {
                     this.elements.seasonalMascot.classList.add('show');
                 }, 1500);
-            }
-            
-            showClickHint() {
-                setTimeout(() => {
-                    this.elements.clickHint.classList.add('show');
-                    setTimeout(() => {
-                        this.elements.clickHint.classList.remove('show');
-                    }, 3000);
-                }, 2000);
             }
             
             getActiveLayer() {
