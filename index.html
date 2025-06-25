@@ -763,7 +763,6 @@
                 this.specificGifId = urlParams.get('id');
                 
                 if (this.specificGifId) {
-                    console.log(`Specific goat gif requested: ${this.specificGifId}`);
                     this.isShowingSpecificGif = true;
                 }
             }
@@ -870,12 +869,10 @@
                     // We're embedded, hide the embed button and seasonal mascot
                     this.elements.embedButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
-                    console.log('Embed mode detected - hiding embed button and seasonal mascot');
                 } else {
                     this.isEmbedded = false;
                     // We're not embedded, disable logo clicks
                     this.elements.logo.classList.add('disabled');
-                    console.log('Standalone mode detected - logo clicks disabled');
                 }
             }
 
@@ -894,7 +891,6 @@
                     
                     // Start auto-timer for specific gifs too
                     this.startTimer();
-                    console.log(`Successfully loaded specific gif: ${this.specificGifId}`);
                     
                 } catch (error) {
                     console.error('Error loading specific gif:', error);
