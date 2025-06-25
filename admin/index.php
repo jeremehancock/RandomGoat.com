@@ -370,8 +370,8 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             <div class="gallery">
                 <?php foreach ($currentGoats as $goatId): ?>
                     <div class="goat-item">
-                        <iframe src="https://giphy.com/embed/<?php echo htmlspecialchars($goatId); ?>" 
-                                width="100%" height="200" frameBorder="0" class="goat-gif"></iframe>
+                        <img src="https://media.giphy.com/media/<?php echo htmlspecialchars($goatId); ?>/giphy.gif" 
+                             alt="Goat GIF" class="goat-gif" loading="lazy">
                         <div class="goat-info">
                             <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
                             <form method="POST" style="display: inline;" 
