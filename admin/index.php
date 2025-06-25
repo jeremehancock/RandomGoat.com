@@ -316,6 +316,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            justify-content: center;
         }
         
         .btn:hover {
