@@ -166,32 +166,31 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #1e1b4b;
-            --bg-secondary: #312e81;
-            --bg-tertiary: #3730a3;
-            --bg-quaternary: #4c1d95;
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --bg-quaternary: #252525;
             --text-primary: #ffffff;
-            --text-secondary: #e0e7ff;
-            --text-muted: #a5b4fc;
-            --text-subtle: #818cf8;
-            --accent-primary: #8b5cf6;
-            --accent-hover: #7c3aed;
-            --accent-light: #a78bfa;
+            --text-secondary: #e4e4e7;
+            --text-muted: #71717a;
+            --text-subtle: #52525b;
+            --accent-primary: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: #8b5cf6;
             --success: #10b981;
-            --success-bg: rgba(16, 185, 129, 0.15);
-            --error: #f87171;
-            --error-bg: rgba(248, 113, 113, 0.15);
-            --warning: #fbbf24;
-            --warning-bg: rgba(251, 191, 36, 0.15);
-            --border: #4c1d95;
-            --border-hover: #5b21b6;
-            --shadow-sm: 0 1px 2px 0 rgba(30, 27, 75, 0.4);
-            --shadow: 0 4px 6px -1px rgba(30, 27, 75, 0.5);
-            --shadow-lg: 0 10px 15px -3px rgba(30, 27, 75, 0.6);
-            --shadow-xl: 0 20px 25px -5px rgba(30, 27, 75, 0.7);
+            --success-bg: rgba(16, 185, 129, 0.1);
+            --error: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.1);
+            --border: #27272a;
+            --border-hover: #3f3f46;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.4);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.6);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
             --gradient-primary: linear-gradient(135deg, var(--accent-primary), var(--accent-light));
             --gradient-surface: linear-gradient(145deg, var(--bg-secondary), var(--bg-tertiary));
-            --gradient-background: linear-gradient(135deg, #1e1b4b, #312e81, #3730a3);
         }
         
         * {
@@ -202,7 +201,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: var(--gradient-background);
+            background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
@@ -275,7 +274,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         }
         
         .logout-btn {
-            background: linear-gradient(135deg, #ec4899, #be185d);
+            background: var(--error);
             color: white;
             padding: 12px 20px;
             border: none;
@@ -292,7 +291,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         }
         
         .logout-btn:hover {
-            background: linear-gradient(135deg, #be185d, #9d174d);
+            background: #dc2626;
             transform: translateY(-2px);
             box-shadow: var(--shadow-lg);
         }
@@ -423,7 +422,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
             background: var(--bg-secondary);
         }
         
@@ -488,11 +487,11 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         }
         
         .btn.danger {
-            background: linear-gradient(135deg, var(--error), #ec4899);
+            background: linear-gradient(135deg, var(--error), #dc2626);
         }
         
         .btn.danger:hover {
-            background: linear-gradient(135deg, #ec4899, #be185d);
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
         }
         
         .gallery {
@@ -620,7 +619,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(30, 27, 75, 0.9);
+            background-color: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(8px);
         }
         
