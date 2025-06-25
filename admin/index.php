@@ -550,7 +550,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
         <div class="container">
             <div class="header">
                 <div class="header-content">
-                    <h1>🐐 Goat Gallery Admin</h1>
+                    <h1>🐐 Random Goat Admin</h1>
                     <div class="stats">
                         Total Goats: <?php echo $totalGoats; ?> | 
                         Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
