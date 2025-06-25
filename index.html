@@ -554,7 +554,31 @@
             animation: slideIn 0.3s ease;
         }
 
+        /* Preload indicator */
+        .preload-indicator {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.8), rgba(0, 204, 106, 0.8));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 20px;
+            padding: 8px 16px;
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 40;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
 
+        .preload-indicator.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translate(-50%, -60%); }
@@ -584,6 +608,13 @@
                 padding: 8px 15px;
                 font-size: 0.8rem;
                 gap: 6px;
+            }
+
+            .preload-indicator {
+                top: 15px;
+                left: 15px;
+                padding: 6px 12px;
+                font-size: 0.8rem;
             }
 
             .modal {
@@ -631,6 +662,10 @@
         <button class="embed-button" id="embedButton">
             <span>🔗</span>
         </button>
+
+        <div class="preload-indicator" id="preloadIndicator">
+            🚀 <span id="preloadCount">0</span>/5 ready
+        </div>
 
         <div class="gif-container" id="gifContainer">
             <div class="gif-layer" id="layer1">
@@ -703,10 +738,14 @@
                 this.isLoading = false;
                 this.currentLayer = 1;
                 this.preloadedGifs = new Map();
+                this.preloadQueue = new Set();
+                this.usedGifIds = new Set();
                 this.loadingQueue = [];
                 this.specificGifId = null;
                 this.isShowingSpecificGif = false;
                 this.isEmbedded = false;
+                this.targetPreloadCount = 5;
+                this.isPreloading = false;
                 
                 this.elements = {
                     splashScreen: document.getElementById('splashScreen'),
@@ -721,7 +760,9 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode')
+                    embedCode: document.getElementById('embedCode'),
+                    preloadIndicator: document.getElementById('preloadIndicator'),
+                    preloadCount: document.getElementById('preloadCount')
                 };
                 
                 this.init();
@@ -819,7 +860,14 @@
                             this.nextGif();
                         }
                         
-                        this.preloadNextGifs();
+                        // Start aggressive preloading
+                        this.startPreloadMaintenance();
+                        
+                        // Show preload indicator after a delay
+                        setTimeout(() => {
+                            this.elements.preloadIndicator.classList.add('show');
+                        }, 2000);
+                        
                     }, 600);
                 }, 1500);
             }
@@ -828,9 +876,10 @@
                 // Check if we're running inside an iframe
                 if (window.self !== window.top) {
                     this.isEmbedded = true;
-                    // We're embedded, hide the embed button and seasonal mascot
+                    // We're embedded, hide the embed button, seasonal mascot, and preload indicator
                     this.elements.embedButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
+                    this.elements.preloadIndicator.style.display = 'none';
                 } else {
                     this.isEmbedded = false;
                     // We're not embedded, disable logo clicks
@@ -899,18 +948,9 @@
                     console.log('Using fallback gif IDs...');
                     // Expanded fallback list for better variety
                     this.gifIds = [
-                        'i2KjyMsyb2L3G', // Classic goat jump
-                        '6qbvtoTgXyoy4', // Goat eating
-                        '3bjpYEM2wLeqQ', // Baby goat playing
-                        'MWBqNJlZXGRfa', // Goat climbing
-                        'CzHhegH2ZGsPS', // Funny goat face
-                        '3o7qDEq2bMbcbPRQ2c', // Goat dancing
-                        'xUNd9IMywss6NuiQ1G', // Goat jumping fence
-                        '3o6fIS7Vp2d9hfwGBi', // Goat headbutting
-                        'l0Iy7j3xJ0MNVGpGw', // Goat yoga
-                        'xUA7aVsLNfUksJ8J7O', // Goat sliding
-                        '3oKIPgTWXpzgsoxFHa', // Cute baby goat
-                        '13J8e6bKNPCJrO', // Goat on playground
+                        'i2KjyMsyb2L3G',
+                        '6qbvtoTgXyoy4',
+                        '3bjpYEM2wLeqQ',
                     ];
                 }
                 console.log(`Loaded ${this.gifIds.length} goat gifs!`);
@@ -958,10 +998,21 @@
             getRandomGifId() {
                 if (this.gifIds.length === 0) return null;
                 
-                const availableIds = this.gifIds.filter((_, index) => index !== this.currentGifIndex);
+                // Filter out already used GIFs if we have enough variety
+                let availableIds = this.gifIds;
+                
+                if (this.usedGifIds.size < this.gifIds.length - 1) {
+                    availableIds = this.gifIds.filter(id => !this.usedGifIds.has(id));
+                } else {
+                    // Reset used GIFs if we've cycled through most of them
+                    this.usedGifIds.clear();
+                }
+                
                 const randomIndex = Math.floor(Math.random() * availableIds.length);
-                this.currentGifIndex = this.gifIds.indexOf(availableIds[randomIndex]);
-                return availableIds[randomIndex];
+                const selectedId = availableIds[randomIndex];
+                
+                this.usedGifIds.add(selectedId);
+                return selectedId;
             }
             
             async preloadGif(gifId) {
@@ -969,16 +1020,26 @@
                     return this.preloadedGifs.get(gifId);
                 }
                 
+                // Add to preload queue to avoid duplicates
+                if (this.preloadQueue.has(gifId)) {
+                    return null;
+                }
+                
+                this.preloadQueue.add(gifId);
+                
                 return new Promise((resolve, reject) => {
                     const img = new Image();
                     const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
                     
                     img.onload = () => {
                         this.preloadedGifs.set(gifId, gifUrl);
+                        this.preloadQueue.delete(gifId);
+                        this.updatePreloadIndicator();
                         resolve(gifUrl);
                     };
                     
                     img.onerror = () => {
+                        this.preloadQueue.delete(gifId);
                         reject(new Error(`Failed to preload gif: ${gifId}`));
                     };
                     
@@ -986,19 +1047,82 @@
                 });
             }
             
-            async preloadNextGifs() {
-                // Preload 3 random gifs for smoother experience
-                const preloadCount = Math.min(3, this.gifIds.length);
-                for (let i = 0; i < preloadCount; i++) {
-                    try {
-                        const gifId = this.getRandomGifId();
-                        if (gifId) {
-                            await this.preloadGif(gifId);
-                        }
-                    } catch (error) {
-                        console.log(`Preload failed for gif, continuing...`);
+            async maintainPreloadQueue() {
+                if (this.isPreloading) return;
+                this.isPreloading = true;
+                
+                try {
+                    const currentPreloaded = this.preloadedGifs.size;
+                    const needed = this.targetPreloadCount - currentPreloaded;
+                    
+                    if (needed <= 0) {
+                        this.isPreloading = false;
+                        return;
                     }
+                    
+                    // Preload multiple GIFs in parallel for speed
+                    const preloadPromises = [];
+                    
+                    for (let i = 0; i < needed; i++) {
+                        const gifId = this.getRandomGifId();
+                        if (gifId && !this.preloadedGifs.has(gifId) && !this.preloadQueue.has(gifId)) {
+                            preloadPromises.push(
+                                this.preloadGif(gifId).catch(error => {
+                                    console.log(`Preload failed for ${gifId}:`, error.message);
+                                })
+                            );
+                        }
+                    }
+                    
+                    // Wait for all preloads to complete (or fail)
+                    await Promise.allSettled(preloadPromises);
+                    
+                } catch (error) {
+                    console.error('Error maintaining preload queue:', error);
+                } finally {
+                    this.isPreloading = false;
                 }
+            }
+            
+            startPreloadMaintenance() {
+                // Initial aggressive preload
+                this.maintainPreloadQueue();
+                
+                // Set up periodic maintenance
+                setInterval(() => {
+                    this.maintainPreloadQueue();
+                }, 2000); // Check every 2 seconds
+            }
+            
+            updatePreloadIndicator() {
+                const count = this.preloadedGifs.size;
+                this.elements.preloadCount.textContent = count;
+                
+                // Change color based on preload status
+                if (count >= this.targetPreloadCount) {
+                    this.elements.preloadIndicator.style.background = 
+                        'linear-gradient(135deg, rgba(0, 255, 136, 0.8), rgba(0, 204, 106, 0.8))';
+                } else if (count >= 3) {
+                    this.elements.preloadIndicator.style.background = 
+                        'linear-gradient(135deg, rgba(255, 193, 7, 0.8), rgba(255, 152, 0, 0.8))';
+                } else {
+                    this.elements.preloadIndicator.style.background = 
+                        'linear-gradient(135deg, rgba(255, 107, 107, 0.8), rgba(255, 87, 87, 0.8))';
+                }
+            }
+            
+            getNextPreloadedGif() {
+                // Get a random preloaded gif
+                const preloadedIds = Array.from(this.preloadedGifs.keys());
+                if (preloadedIds.length === 0) return null;
+                
+                const randomIndex = Math.floor(Math.random() * preloadedIds.length);
+                const selectedId = preloadedIds[randomIndex];
+                
+                return {
+                    id: selectedId,
+                    url: this.preloadedGifs.get(selectedId)
+                };
             }
             
             showLoadingState() {
@@ -1077,15 +1201,30 @@
                 this.stopTimer();
                 
                 try {
-                    const gifId = this.getRandomGifId();
-                    if (!gifId) throw new Error('No gif ID available');
+                    let gifId = null;
+                    let gifUrl = null;
+                    
+                    // Try to use a preloaded gif first
+                    const preloadedGif = this.getNextPreloadedGif();
+                    
+                    if (preloadedGif) {
+                        gifId = preloadedGif.id;
+                        gifUrl = preloadedGif.url;
+                        // Remove from preloaded gifs since we're using it
+                        this.preloadedGifs.delete(gifId);
+                        this.updatePreloadIndicator();
+                    } else {
+                        // Fallback to loading a new gif
+                        gifId = this.getRandomGifId();
+                        if (!gifId) throw new Error('No gif ID available');
+                    }
                     
                     // Get layers
                     const activeLayer = this.getActiveLayer();
                     const inactiveLayer = this.getInactiveLayer();
                     
-                    // Show subtle loading indicator only if gif isn't preloaded
-                    if (!this.preloadedGifs.has(gifId)) {
+                    // Show loading state only if we don't have a preloaded gif
+                    if (!gifUrl) {
                         this.showLoadingState();
                     }
                     
@@ -1108,13 +1247,10 @@
                     // Start timer for next gif
                     this.startTimer();
                     
-                    // Preload next gif for smoother experience
+                    // Trigger preload maintenance
                     setTimeout(() => {
-                        const nextGifId = this.getRandomGifId();
-                        if (nextGifId && !this.preloadedGifs.has(nextGifId)) {
-                            this.preloadGif(nextGifId).catch(() => {});
-                        }
-                    }, 1000);
+                        this.maintainPreloadQueue();
+                    }, 500);
                     
                 } catch (error) {
                     console.error('Error loading gif:', error);
