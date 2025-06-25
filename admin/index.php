@@ -279,6 +279,20 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             border: 1px solid var(--border);
         }
         
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+        
+        .control-section {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+        
         .controls h3 {
             margin-bottom: 20px;
             color: var(--text-primary);
@@ -302,7 +316,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             border: 2px solid var(--border);
             border-radius: 8px;
             font-size: 14px;
-            background: var(--bg-tertiary);
+            background: var(--bg-primary);
             color: var(--text-primary);
             transition: border-color 0.3s, box-shadow 0.3s;
         }
@@ -347,6 +361,19 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 24px;
             margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .goat-item {
+            max-width: 350px;
+            width: 100%;
+            justify-self: center;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
+            transition: transform 0.3s, box-shadow 0.3s;
         }
         
         .goat-item {
@@ -527,7 +554,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             
             .controls-grid {
                 grid-template-columns: 1fr;
-                gap: 30px;
+                gap: 20px;
             }
             
             .modal-content {
@@ -587,7 +614,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             
             <div class="controls">
                 <div class="controls-grid">
-                    <div>
+                    <div class="control-section">
                         <h3>Add New Goat</h3>
                         <form method="POST">
                             <input type="hidden" name="action" value="add">
@@ -600,7 +627,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         </form>
                     </div>
                     
-                    <div>
+                    <div class="control-section">
                         <h3>Search Gallery</h3>
                         <form method="GET">
                             <div class="form-group">
