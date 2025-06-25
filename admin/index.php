@@ -160,7 +160,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Goat</title>
+    <title>Random Goat Admin</title>
     <meta charset="UTF-8">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
