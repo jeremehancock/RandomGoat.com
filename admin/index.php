@@ -1,5 +1,5 @@
 <?php
-// Goat Gallery Admin - Single File PHP App with Dark Theme & Auth
+
 session_start();
 
 // Configuration
@@ -160,7 +160,11 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goat Gallery Admin</title>
+    <title>Random Goat</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Looking for random goat gifs? Look no further!"/>
     <style>
         :root {
             --bg-primary: #0f0f0f;
@@ -539,7 +543,6 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>🐐 Admin Login</h2>
-                    <p>Please enter your credentials to access the Goat Gallery</p>
                 </div>
                 <form method="POST">
                     <div class="form-group">
@@ -561,7 +564,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         <div class="container">
             <div class="header">
                 <div class="header-content">
-                    <h1>🐐 Goat Gallery Admin</h1>
+                    <h1>🐐 Random Goat Admin</h1>
                     <div class="stats">
                         <?php if ($search): ?>
                             Search: "<?php echo htmlspecialchars($search); ?>" - 
