@@ -6,6 +6,7 @@ session_start();
 $dataFile = '../data/goats.txt';
 $perPage = 12;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
 // Simple auth credentials (in production, use hashed passwords)
 $adminUsername = 'admin';
@@ -139,10 +140,19 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Get current goat IDs and pagination info
 $allGoatIds = $isLoggedIn ? readGoatIds($dataFile) : [];
-$totalGoats = count($allGoatIds);
+
+// Filter goats based on search
+$filteredGoatIds = $allGoatIds;
+if ($search && $isLoggedIn) {
+    $filteredGoatIds = array_filter($allGoatIds, function($id) use ($search) {
+        return stripos($id, $search) !== false;
+    });
+}
+
+$totalGoats = count($filteredGoatIds);
 $totalPages = ceil($totalGoats / $perPage);
 $offset = ($page - 1) * $perPage;
-$currentGoats = array_slice($allGoatIds, $offset, $perPage);
+$currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 
 ?>
 <!DOCTYPE html>
@@ -150,11 +160,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Goat Admin</title>
-    <meta charset="UTF-8">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Looking for random goat gifs? Look no further!"/>
+    <title>Goat Gallery Admin</title>
     <style>
         :root {
             --bg-primary: #0f0f0f;
@@ -316,7 +322,6 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            justify-content: center;
         }
         
         .btn:hover {
@@ -515,6 +520,11 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
                 text-align: center;
             }
             
+            .controls-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
             .modal-content {
                 margin: 20px;
                 padding: 24px;
@@ -529,6 +539,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>🐐 Admin Login</h2>
+                    <p>Please enter your credentials to access the Goat Gallery</p>
                 </div>
                 <form method="POST">
                     <div class="form-group">
@@ -539,7 +550,7 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" name="login" class="btn" style="width: 100%; text-align: center;">Login</button>
+                    <button type="submit" name="login" class="btn" style="width: 100%;">Login</button>
                     <?php if (isset($loginError)): ?>
                         <div class="login-error"><?php echo htmlspecialchars($loginError); ?></div>
                     <?php endif; ?>
@@ -550,9 +561,14 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
         <div class="container">
             <div class="header">
                 <div class="header-content">
-                    <h1>🐐 Random Goat Admin</h1>
+                    <h1>🐐 Goat Gallery Admin</h1>
                     <div class="stats">
-                        Total Goats: <?php echo $totalGoats; ?> | 
+                        <?php if ($search): ?>
+                            Search: "<?php echo htmlspecialchars($search); ?>" - 
+                            <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
+                        <?php else: ?>
+                            Total Goats: <?php echo count($allGoatIds); ?> |
+                        <?php endif; ?>
                         Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
                     </div>
                 </div>
@@ -566,22 +582,50 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
             <?php endif; ?>
             
             <div class="controls">
-                <h3>Add New Goat</h3>
-                <form method="POST">
-                    <input type="hidden" name="action" value="add">
-                    <div class="form-group">
-                        <label for="giphy_url">Giphy URL:</label>
-                        <input type="url" id="giphy_url" name="giphy_url" 
-                               placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                <div class="controls-grid">
+                    <div>
+                        <h3>Add New Goat</h3>
+                        <form method="POST">
+                            <input type="hidden" name="action" value="add">
+                            <div class="form-group">
+                                <label for="giphy_url">Giphy URL:</label>
+                                <input type="url" id="giphy_url" name="giphy_url" 
+                                       placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                            </div>
+                            <button type="submit" class="btn">Add Goat</button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn">Add Goat</button>
-                </form>
+                    
+                    <div>
+                        <h3>Search Gallery</h3>
+                        <form method="GET">
+                            <div class="form-group">
+                                <label for="search">Search by Goat ID:</label>
+                                <input type="text" id="search" name="search" 
+                                       placeholder="Enter part of goat ID..." 
+                                       value="<?php echo htmlspecialchars($search); ?>">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button type="submit" class="btn">🔍 Search</button>
+                                <?php if ($search): ?>
+                                    <a href="?" class="btn btn-secondary">Clear</a>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
             
             <?php if (empty($currentGoats)): ?>
                 <div class="empty-state">
-                    <h3>No goats found</h3>
-                    <p>Add some goats using the form above!</p>
+                    <?php if ($search): ?>
+                        <h3>No goats found</h3>
+                        <p>No goats match your search for "<?php echo htmlspecialchars($search); ?>"</p>
+                        <p><a href="?" style="color: var(--accent-primary);">Clear search</a> to see all goats</p>
+                    <?php else: ?>
+                        <h3>No goats found</h3>
+                        <p>Add some goats using the form above!</p>
+                    <?php endif; ?>
                 </div>
             <?php else: ?>
                 <div class="gallery">
@@ -602,9 +646,12 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
                 
                 <?php if ($totalPages > 1): ?>
                     <div class="pagination">
+                        <?php 
+                        $searchParam = $search ? '&search=' . urlencode($search) : '';
+                        ?>
                         <?php if ($page > 1): ?>
-                            <a href="?page=1">First</a>
-                            <a href="?page=<?php echo $page - 1; ?>">Previous</a>
+                            <a href="?page=1<?php echo $searchParam; ?>">First</a>
+                            <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Previous</a>
                         <?php endif; ?>
                         
                         <?php
@@ -616,13 +663,13 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
                             <?php if ($i == $page): ?>
                                 <span class="current"><?php echo $i; ?></span>
                             <?php else: ?>
-                                <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                <a href="?page=<?php echo $i; ?><?php echo $searchParam; ?>"><?php echo $i; ?></a>
                             <?php endif; ?>
                         <?php endfor; ?>
                         
                         <?php if ($page < $totalPages): ?>
-                            <a href="?page=<?php echo $page + 1; ?>">Next</a>
-                            <a href="?page=<?php echo $totalPages; ?>">Last</a>
+                            <a href="?page=<?php echo $page + 1; ?><?php echo $searchParam; ?>">Next</a>
+                            <a href="?page=<?php echo $totalPages; ?><?php echo $searchParam; ?>">Last</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
