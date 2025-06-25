@@ -554,7 +554,34 @@
             animation: slideIn 0.3s ease;
         }
 
+        .season-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.9), rgba(196, 113, 237, 0.9));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 8px 16px;
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 
+                0 4px 20px rgba(255, 107, 157, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            z-index: 35;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.4s ease;
+            pointer-events: none;
+        }
 
+        .season-info.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
         @keyframes slideIn {
             from { opacity: 0; transform: translate(-50%, -60%); }
@@ -586,7 +613,12 @@
                 gap: 6px;
             }
 
-
+            .season-info {
+                top: 15px;
+                left: 15px;
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
 
             .modal {
                 width: 95%;
@@ -634,7 +666,9 @@
             <span>🔗</span>
         </button>
 
-
+        <div class="season-info" id="seasonInfo">
+            🎄 Christmas Mode
+        </div>
 
         <div class="gif-container" id="gifContainer">
             <div class="gif-layer" id="layer1">
@@ -715,6 +749,7 @@
                 this.isEmbedded = false;
                 this.targetPreloadCount = 5;
                 this.isPreloading = false;
+                this.forcedSeason = null; // New property for URL season override
                 
                 this.elements = {
                     splashScreen: document.getElementById('splashScreen'),
@@ -729,7 +764,8 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode')
+                    embedCode: document.getElementById('embedCode'),
+                    seasonInfo: document.getElementById('seasonInfo')
                 };
                 
                 this.init();
@@ -739,20 +775,52 @@
                 const urlParams = new URLSearchParams(window.location.search);
                 this.specificGifId = urlParams.get('id');
                 
+                // Parse season parameter
+                const seasonParam = urlParams.get('season');
+                if (seasonParam) {
+                    const normalizedSeason = seasonParam.toLowerCase();
+                    if (['christmas', 'xmas', 'holiday'].includes(normalizedSeason)) {
+                        this.forcedSeason = 'christmas';
+                    } else if (['halloween', 'spooky', 'scary'].includes(normalizedSeason)) {
+                        this.forcedSeason = 'halloween';
+                    } else if (['normal', 'default', 'regular'].includes(normalizedSeason)) {
+                        this.forcedSeason = 'normal';
+                    }
+                }
+                
                 if (this.specificGifId) {
                     this.isShowingSpecificGif = true;
                 }
             }
 
-            showUrlInfo() {
-                if (this.isShowingSpecificGif) {
-                    this.elements.urlInfo.textContent = `📎 Showing goat: ${this.specificGifId}`;
+            showSeasonInfo() {
+                if (this.forcedSeason) {
+                    let seasonText = '';
+                    let seasonIcon = '';
+                    
+                    switch (this.forcedSeason) {
+                        case 'christmas':
+                            seasonText = 'Christmas Mode';
+                            seasonIcon = '🎄';
+                            break;
+                        case 'halloween':
+                            seasonText = 'Halloween Mode';
+                            seasonIcon = '🎃';
+                            break;
+                        case 'normal':
+                            seasonText = 'Normal Mode';
+                            seasonIcon = '🐐';
+                            break;
+                    }
+                    
+                    this.elements.seasonInfo.innerHTML = `${seasonIcon} ${seasonText}`;
+                    
                     setTimeout(() => {
-                        this.elements.urlInfo.classList.add('show');
-                        // Hide after 5 seconds
+                        this.elements.seasonInfo.classList.add('show');
+                        // Hide after 4 seconds
                         setTimeout(() => {
-                            this.elements.urlInfo.classList.remove('show');
-                        }, 5000);
+                            this.elements.seasonInfo.classList.remove('show');
+                        }, 4000);
                     }, 1000);
                 }
             }
@@ -820,6 +888,7 @@
                     setTimeout(() => {
                         this.showGifContainer();
                         this.setupSeasonalMascot();
+                        this.showSeasonInfo(); // Show season info if applicable
                         
                         if (this.specificGifId) {
                             this.showSpecificGif();
@@ -841,6 +910,7 @@
                     // We're embedded, hide the embed button and seasonal mascot
                     this.elements.embedButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
+                    this.elements.seasonInfo.style.display = 'none';
                 } else {
                     this.isEmbedded = false;
                     // We're not embedded, disable logo clicks
@@ -926,18 +996,36 @@
             }
             
             setupSeasonalMascot() {
-                const currentMonth = new Date().getMonth() + 1; // 1-12
                 let mascotImage;
                 
-                if (currentMonth === 12) {
-                    // December - Christmas goat
-                    mascotImage = 'images/santa-goat.png';
-                } else if (currentMonth === 10) {
-                    // October - Halloween goat
-                    mascotImage = 'images/halloween-goat.png';
+                // Check for forced season first, then fall back to date-based logic
+                if (this.forcedSeason) {
+                    switch (this.forcedSeason) {
+                        case 'christmas':
+                            mascotImage = 'images/santa-goat.png';
+                            break;
+                        case 'halloween':
+                            mascotImage = 'images/halloween-goat.png';
+                            break;
+                        case 'normal':
+                        default:
+                            mascotImage = 'images/goat.png';
+                            break;
+                    }
                 } else {
-                    // All other months - regular goat
-                    mascotImage = 'images/goat.png';
+                    // Original date-based logic
+                    const currentMonth = new Date().getMonth() + 1; // 1-12
+                    
+                    if (currentMonth === 12) {
+                        // December - Christmas goat
+                        mascotImage = 'images/santa-goat.png';
+                    } else if (currentMonth === 10) {
+                        // October - Halloween goat
+                        mascotImage = 'images/halloween-goat.png';
+                    } else {
+                        // All other months - regular goat
+                        mascotImage = 'images/goat.png';
+                    }
                 }
                 
                 this.elements.seasonalMascot.src = mascotImage;
