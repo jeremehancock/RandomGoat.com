@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Goat</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Looking for random goat gifs? Look no further!"/>
+    <meta name="keywords" content="pointless, useless, web, websites, sites, goat, goats, gif, gifs, random, weird, odd, bizarre"/>
+    <meta property="og:title" content="Random Goat"/>
+    <meta property="og:type" content="website"/>
+    <meta property="og:description" content="Looking for random goat gifs? Look no further!"/>
+    <meta property="og:url" content="https://randomgoat.com"/>
+    <meta property="og:image" content="https://jereme.dev/goats/images/goat-og.png"/>
+    <meta property="og:site_name" content="randomgoat.com"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #000;
+            cursor: pointer;
+            user-select: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            z-index: 1000;
+        }
+
+        .splash-screen.hide {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+
+        .splash-screen h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .splash-screen p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .gif-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .gif-container.visible {
+            opacity: 1;
+        }
+
+        .gif-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .gif-layer img {
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            object-position: center;
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(1.02);
+            filter: brightness(0.9);
+        }
+
+        .gif-layer.active img {
+            opacity: 1;
+            transform: scale(1);
+            filter: brightness(1);
+        }
+
+        .gif-layer.fade-out img {
+            opacity: 0;
+            transform: scale(0.98);
+            filter: brightness(0.8);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
+                        linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            animation: slide 2s linear infinite;
+        }
+
+        .loading-overlay.show {
+            opacity: 0.1;
+        }
+
+        @keyframes slide {
+            0% { background-position: 0 0, 10px 10px; }
+            100% { background-position: 20px 20px, 30px 30px; }
+        }
+
+        .progress-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100vw;
+            height: 8px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+            transition: width 0.1s linear;
+            z-index: 20;
+            box-shadow: 
+                0 0 20px rgba(102, 126, 234, 0.8),
+                0 -2px 10px rgba(102, 126, 234, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            animation: progressGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes progressGlow {
+            0% {
+                box-shadow: 
+                    0 0 20px rgba(102, 126, 234, 0.8),
+                    0 -2px 10px rgba(102, 126, 234, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            }
+            100% {
+                box-shadow: 
+                    0 0 30px rgba(102, 126, 234, 1),
+                    0 -4px 15px rgba(102, 126, 234, 0.6),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .click-hint {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 30;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .click-hint.show {
+            opacity: 1;
+        }
+
+        .logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 35px;
+            padding: 12px 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 40;
+            text-decoration: none;
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            font-size: 1.3rem;
+            letter-spacing: -0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .logo:hover {
+            transform: translateY(-2px) scale(1.05);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .logo.disabled {
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .logo.disabled:hover {
+            transform: none;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .logo .goat-icon {
+            font-size: 1.6rem;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+            animation: bobble 3s ease-in-out infinite;
+        }
+
+        @keyframes bobble {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-1px) rotate(1deg); }
+            50% { transform: translateY(-2px) rotate(0deg); }
+            75% { transform: translateY(-1px) rotate(-1deg); }
+        }
+
+        .logo .site-text {
+            background: linear-gradient(45deg, #ff6b9d, #c471ed, #12c2e9);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease-in-out infinite;
+            font-weight: 700;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .embed-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 40;
+            color: white;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+        }
+
+        .embed-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border-radius: 20px;
+            padding: 25px;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 
+                0 20px 60px rgba(0, 0, 0, 0.8),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .modal-overlay.show .modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-title .goat-icon {
+            font-size: 1.3rem;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+        }
+
+        .modal-title .title-text {
+            background: linear-gradient(45deg, #ff6b9d, #c471ed, #12c2e9);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientShift 4s ease-in-out infinite;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .embed-preview {
+            margin-bottom: 20px;
+        }
+
+        .embed-preview h3 {
+            margin-bottom: 12px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .preview-container {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            border-radius: 8px;
+            border: none;
+        }
+
+        .code-section h3 {
+            margin-bottom: 12px;
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .code-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+
+        .code-block {
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.85rem;
+            color: #00ff88;
+            line-height: 1.6;
+            margin: 0;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+
+        .copy-button {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .copy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .copy-button.copied {
+            background: linear-gradient(135deg, #00ff88, #00cc6a);
+            box-shadow: 0 4px 15px rgba(0, 255, 136, 0.3);
+        }
+
+        .embed-instructions {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 12px;
+            margin-top: 15px;
+        }
+
+        .embed-instructions h4 {
+            margin-bottom: 8px;
+            color: #ff6b9d;
+            font-size: 0.95rem;
+        }
+
+        .embed-instructions p {
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            line-height: 1.3;
+            opacity: 0.9;
+        }
+
+        .seasonal-mascot {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: auto;
+            max-height: none;
+            width: auto;
+            z-index: 25;
+            opacity: 0;
+            transform: translateX(-20px) scale(0.9);
+            transition: all 0.6s ease;
+            filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.3));
+        }
+
+        .seasonal-mascot.show {
+            opacity: 0.9;
+            transform: translateX(0) scale(1);
+        }
+
+        .error-message {
+            color: #ff6b6b;
+            font-size: 1.1rem;
+            text-align: center;
+            background: rgba(0,0,0,0.9);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            border: 1px solid #ff6b6b;
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.3s ease;
+        }
+
+
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translate(-50%, -60%); }
+            to { opacity: 1; transform: translate(-50%, -50%); }
+        }
+
+        @media (max-width: 768px) {
+            .splash-screen h1 {
+                font-size: 2rem;
+            }
+            
+            .click-hint {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+
+            .logo {
+                bottom: 15px;
+                right: 15px;
+                padding: 10px 18px;
+                font-size: 1rem;
+                gap: 10px;
+            }
+
+            .logo .goat-icon {
+                font-size: 1.4rem;
+            }
+
+            .embed-button {
+                top: 15px;
+                right: 15px;
+                padding: 8px 15px;
+                font-size: 0.8rem;
+                gap: 6px;
+            }
+
+            .modal {
+                width: 95%;
+                padding: 15px;
+                margin: 10px;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+                gap: 8px;
+            }
+
+            .modal-title .goat-icon {
+                font-size: 1.1rem;
+            }
+
+            .preview-iframe {
+                height: 150px;
+                max-width: 300px;
+            }
+
+            .code-block {
+                font-size: 0.75rem;
+            }
+
+            .copy-button {
+                padding: 6px 12px;
+                font-size: 0.75rem;
+            }
+
+            .embed-instructions p {
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="splash-screen" id="splashScreen">
+            <h1>🐐 Random Goat...</h1>
+            <div class="loading-spinner"></div>
+        </div>
+
+        <button class="embed-button" id="embedButton">
+            <span>🔗</span>
+        </button>
+
+        <div class="gif-container" id="gifContainer">
+            <div class="gif-layer" id="layer1">
+                <img alt="Goat gif">
+            </div>
+            <div class="gif-layer" id="layer2">
+                <img alt="Goat gif">
+            </div>
+            <div class="loading-overlay" id="loadingOverlay"></div>
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="click-hint" id="clickHint">
+            🖱️ Click/Tap for next goat
+        </div>
+
+        <a href="https://randomgoat.com" target="_blank" class="logo" id="logo">
+            <span class="goat-icon">🐐</span>
+            <span class="site-text">randomgoat.com</span>
+        </a>
+
+        <img class="seasonal-mascot" id="seasonalMascot" alt="Seasonal goat mascot">
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span class="goat-icon">🐐</span>
+                    <span class="title-text">Embed Random Goat</span>
+                </h2>
+                <button class="close-button" id="closeModal">×</button>
+            </div>
+            
+            <div class="embed-preview">
+                <h3>Preview:</h3>
+                <div class="preview-container">
+                    <iframe 
+                        src="//jereme.dev/goats/embed.php" 
+                        width="480" 
+                        height="270" 
+                        frameBorder="0" 
+                        class="preview-iframe"
+                        allowFullScreen>
+                    </iframe>
+                </div>
+            </div>
+
+            <div class="code-section">
+                <h3>Embed Code:</h3>
+                <div class="code-container">
+                    <button class="copy-button" id="copyButton">Copy</button>
+                    <pre class="code-block" id="embedCode">&lt;iframe src='//jereme.dev/goats/embed.php' width='480' height='360' frameBorder='0' id='random-goat-embed' allowFullScreen&gt;&lt;/iframe&gt;</pre>
+                </div>
+            </div>
+
+            <div class="embed-instructions">
+                <h4>How to embed:</h4>
+                <p>1. Copy the code above</p>
+                <p>2. Paste it into your website's HTML</p>
+                <p>3. Adjust width and height as needed</p>
+                <p>4. Enjoy random goats on your site! 🐐</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class OptimizedGoatGifApp {
+            constructor() {
+                this.gifIds = [];
+                this.currentGifIndex = -1;
+                this.timer = null;
+                this.countdown = 20;
+                this.isLoading = false;
+                this.currentLayer = 1;
+                this.preloadedGifs = new Map();
+                this.loadingQueue = [];
+                this.specificGifId = null;
+                this.isShowingSpecificGif = false;
+                this.isEmbedded = false;
+                
+                this.elements = {
+                    splashScreen: document.getElementById('splashScreen'),
+                    gifContainer: document.getElementById('gifContainer'),
+                    layer1: document.getElementById('layer1'),
+                    layer2: document.getElementById('layer2'),
+                    loadingOverlay: document.getElementById('loadingOverlay'),
+                    progressBar: document.getElementById('progressBar'),
+                    clickHint: document.getElementById('clickHint'),
+                    logo: document.getElementById('logo'),
+                    seasonalMascot: document.getElementById('seasonalMascot'),
+                    embedButton: document.getElementById('embedButton'),
+                    modalOverlay: document.getElementById('modalOverlay'),
+                    closeModal: document.getElementById('closeModal'),
+                    copyButton: document.getElementById('copyButton'),
+                    embedCode: document.getElementById('embedCode')
+                };
+                
+                this.init();
+            }
+
+            parseUrlParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                this.specificGifId = urlParams.get('id');
+                
+                if (this.specificGifId) {
+                    console.log(`Specific goat gif requested: ${this.specificGifId}`);
+                    this.isShowingSpecificGif = true;
+                }
+            }
+
+            showUrlInfo() {
+                if (this.isShowingSpecificGif) {
+                    this.elements.urlInfo.textContent = `📎 Showing goat: ${this.specificGifId}`;
+                    setTimeout(() => {
+                        this.elements.urlInfo.classList.add('show');
+                        // Hide after 5 seconds
+                        setTimeout(() => {
+                            this.elements.urlInfo.classList.remove('show');
+                        }, 5000);
+                    }, 1000);
+                }
+            }
+
+            updateClickHintForSpecificGif() {
+                if (this.isShowingSpecificGif) {
+                    this.elements.clickHint.textContent = '🖱️ Click/Tap for random goat';
+                }
+            }
+            
+            async init() {
+                // Parse URL parameters first
+                this.parseUrlParams();
+
+                // Hide embed button if we're in an iframe (embedded)
+                this.checkIfEmbedded();
+
+                // Add interaction event listeners
+                document.addEventListener('click', (e) => this.handleInteraction(e));
+                document.addEventListener('touchstart', (e) => this.handleInteraction(e));
+                document.addEventListener('keydown', (e) => {
+                    if (e.code === 'Space' || e.code === 'Enter') {
+                        e.preventDefault();
+                        this.handleInteraction(e);
+                    }
+                });
+
+                // Modal functionality
+                this.elements.embedButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openModal();
+                });
+
+                this.elements.closeModal.addEventListener('click', () => {
+                    this.closeModal();
+                });
+
+                this.elements.modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === this.elements.modalOverlay) {
+                        this.closeModal();
+                    }
+                });
+
+                this.elements.copyButton.addEventListener('click', () => {
+                    this.copyEmbedCode();
+                });
+
+                // Close modal on Escape key
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.closeModal();
+                    }
+                });
+
+                // Handle logo clicks based on embed status
+                this.elements.logo.addEventListener('click', (e) => {
+                    if (!this.isEmbedded) {
+                        // Prevent logo clicks when not embedded
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    // When embedded, let the default link behavior work
+                });
+                
+                // Load gif IDs
+                await this.loadGifIds();
+                
+                // Start the app
+                setTimeout(() => {
+                    this.hideSplashScreen();
+                    setTimeout(() => {
+                        this.showGifContainer();
+                        this.setupSeasonalMascot();
+                        
+                        if (this.specificGifId) {
+                            this.showSpecificGif();
+                        } else {
+                            this.nextGif();
+                        }
+                        
+                        this.showClickHint();
+                        this.preloadNextGifs();
+                    }, 600);
+                }, 1500);
+            }
+
+            checkIfEmbedded() {
+                // Check if we're running inside an iframe
+                if (window.self !== window.top) {
+                    this.isEmbedded = true;
+                    // We're embedded, hide the embed button and seasonal mascot
+                    this.elements.embedButton.style.display = 'none';
+                    this.elements.seasonalMascot.style.display = 'none';
+                    console.log('Embed mode detected - hiding embed button and seasonal mascot');
+                } else {
+                    this.isEmbedded = false;
+                    // We're not embedded, disable logo clicks
+                    this.elements.logo.classList.add('disabled');
+                    console.log('Standalone mode detected - logo clicks disabled');
+                }
+            }
+
+            async showSpecificGif() {
+                try {
+                    // Validate that the gif ID exists (optional - remove if you want to allow any ID)
+                    const isValidGif = await this.validateGifId(this.specificGifId);
+                    
+                    if (!isValidGif) {
+                        console.warn(`Gif ID ${this.specificGifId} may not exist, but attempting to show anyway`);
+                    }
+
+                    const activeLayer = this.getActiveLayer();
+                    await this.loadGifToLayer(this.specificGifId, activeLayer);
+                    activeLayer.classList.add('active');
+                    
+                    // Start auto-timer for specific gifs too
+                    this.startTimer();
+                    console.log(`Successfully loaded specific gif: ${this.specificGifId}`);
+                    
+                } catch (error) {
+                    console.error('Error loading specific gif:', error);
+                    this.showError(`Failed to load specific gif: ${this.specificGifId}. Switching to random mode...`);
+                    
+                    // Fall back to random mode
+                    this.isShowingSpecificGif = false;
+                    this.specificGifId = null;
+                    setTimeout(() => {
+                        this.nextGif();
+                    }, 2000);
+                }
+            }
+
+            async validateGifId(gifId) {
+                // Simple validation - try to load the image
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+                    
+                    img.onload = () => resolve(true);
+                    img.onerror = () => resolve(false);
+                    
+                    // Set a timeout for validation
+                    setTimeout(() => resolve(false), 5000);
+                    
+                    img.src = gifUrl;
+                });
+            }
+            
+            async loadGifIds() {
+                try {
+                    // Try to load from file first
+                    const response = await fetch('data/goats.txt');
+                    if (!response.ok) throw new Error('File not found');
+                    
+                    const text = await response.text();
+                    this.gifIds = text.split('\n')
+                        .map(line => line.trim())
+                        .filter(line => line.length > 0);
+                        
+                    if (this.gifIds.length === 0) throw new Error('No gif IDs found');
+                } catch (error) {
+                    console.log('Using fallback gif IDs...');
+                    // Expanded fallback list for better variety
+                    this.gifIds = [
+                        'i2KjyMsyb2L3G', // Classic goat jump
+                        '6qbvtoTgXyoy4', // Goat eating
+                        '3bjpYEM2wLeqQ', // Baby goat playing
+                        'MWBqNJlZXGRfa', // Goat climbing
+                        'CzHhegH2ZGsPS', // Funny goat face
+                        '3o7qDEq2bMbcbPRQ2c', // Goat dancing
+                        'xUNd9IMywss6NuiQ1G', // Goat jumping fence
+                        '3o6fIS7Vp2d9hfwGBi', // Goat headbutting
+                        'l0Iy7j3xJ0MNVGpGw', // Goat yoga
+                        'xUA7aVsLNfUksJ8J7O', // Goat sliding
+                        '3oKIPgTWXpzgsoxFHa', // Cute baby goat
+                        '13J8e6bKNPCJrO', // Goat on playground
+                    ];
+                }
+                console.log(`Loaded ${this.gifIds.length} goat gifs!`);
+            }
+            
+            hideSplashScreen() {
+                this.elements.splashScreen.classList.add('hide');
+            }
+            
+            showGifContainer() {
+                this.elements.gifContainer.classList.add('visible');
+            }
+            
+            setupSeasonalMascot() {
+                const currentMonth = new Date().getMonth() + 1; // 1-12
+                let mascotImage;
+                
+                if (currentMonth === 12) {
+                    // December - Christmas goat
+                    mascotImage = 'images/santa-goat.png';
+                } else if (currentMonth === 10) {
+                    // October - Halloween goat
+                    mascotImage = 'images/halloween-goat.png';
+                } else {
+                    // All other months - regular goat
+                    mascotImage = 'images/goat.png';
+                }
+                
+                this.elements.seasonalMascot.src = mascotImage;
+                
+                // Show mascot with delay for nice entrance effect
+                setTimeout(() => {
+                    this.elements.seasonalMascot.classList.add('show');
+                }, 1500);
+            }
+            
+            showClickHint() {
+                setTimeout(() => {
+                    this.elements.clickHint.classList.add('show');
+                    setTimeout(() => {
+                        this.elements.clickHint.classList.remove('show');
+                    }, 3000);
+                }, 2000);
+            }
+            
+            getActiveLayer() {
+                return this.currentLayer === 1 ? this.elements.layer1 : this.elements.layer2;
+            }
+            
+            getInactiveLayer() {
+                return this.currentLayer === 1 ? this.elements.layer2 : this.elements.layer1;
+            }
+            
+            getRandomGifId() {
+                if (this.gifIds.length === 0) return null;
+                
+                const availableIds = this.gifIds.filter((_, index) => index !== this.currentGifIndex);
+                const randomIndex = Math.floor(Math.random() * availableIds.length);
+                this.currentGifIndex = this.gifIds.indexOf(availableIds[randomIndex]);
+                return availableIds[randomIndex];
+            }
+            
+            async preloadGif(gifId) {
+                if (this.preloadedGifs.has(gifId)) {
+                    return this.preloadedGifs.get(gifId);
+                }
+                
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+                    
+                    img.onload = () => {
+                        this.preloadedGifs.set(gifId, gifUrl);
+                        resolve(gifUrl);
+                    };
+                    
+                    img.onerror = () => {
+                        reject(new Error(`Failed to preload gif: ${gifId}`));
+                    };
+                    
+                    img.src = gifUrl;
+                });
+            }
+            
+            async preloadNextGifs() {
+                // Preload 3 random gifs for smoother experience
+                const preloadCount = Math.min(3, this.gifIds.length);
+                for (let i = 0; i < preloadCount; i++) {
+                    try {
+                        const gifId = this.getRandomGifId();
+                        if (gifId) {
+                            await this.preloadGif(gifId);
+                        }
+                    } catch (error) {
+                        console.log(`Preload failed for gif, continuing...`);
+                    }
+                }
+            }
+            
+            showLoadingState() {
+                // Disabled - no loading overlay
+            }
+            
+            hideLoadingState() {
+                // Disabled - no loading overlay
+            }
+            
+            async loadGifToLayer(gifId, layer) {
+                const img = layer.querySelector('img');
+                const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
+                
+                return new Promise((resolve, reject) => {
+                    const tempImg = new Image();
+                    
+                    tempImg.onload = () => {
+                        img.src = gifUrl;
+                        resolve();
+                    };
+                    
+                    tempImg.onerror = () => {
+                        reject(new Error(`Failed to load gif: ${gifId}`));
+                    };
+                    
+                    // Use preloaded gif if available
+                    if (this.preloadedGifs.has(gifId)) {
+                        tempImg.src = this.preloadedGifs.get(gifId);
+                    } else {
+                        tempImg.src = gifUrl;
+                    }
+                });
+            }
+            
+            startTimer() {
+                this.countdown = 20;
+                this.updateProgressBar();
+                
+                this.timer = setInterval(() => {
+                    this.countdown--;
+                    this.updateProgressBar();
+                    
+                    if (this.countdown <= 0) {
+                        // Let progress bar reach 100% before transitioning
+                        setTimeout(() => {
+                            this.nextGif();
+                        }, 100);
+                    }
+                }, 1000);
+            }
+            
+            updateProgressBar() {
+                const progress = ((20 - this.countdown) / 20) * 100;
+                this.elements.progressBar.style.width = `${progress}%`;
+            }
+            
+            stopTimer() {
+                if (this.timer) {
+                    clearInterval(this.timer);
+                    this.timer = null;
+                }
+                this.elements.progressBar.style.width = '0%';
+            }
+            
+            async nextGif() {
+                if (this.isLoading) return;
+
+                // If we were showing a specific gif, switch to random mode
+                if (this.isShowingSpecificGif) {
+                    this.isShowingSpecificGif = false;
+                    this.specificGifId = null;
+                }
+                
+                this.isLoading = true;
+                this.stopTimer();
+                
+                try {
+                    const gifId = this.getRandomGifId();
+                    if (!gifId) throw new Error('No gif ID available');
+                    
+                    // Get layers
+                    const activeLayer = this.getActiveLayer();
+                    const inactiveLayer = this.getInactiveLayer();
+                    
+                    // Show subtle loading indicator only if gif isn't preloaded
+                    if (!this.preloadedGifs.has(gifId)) {
+                        this.showLoadingState();
+                    }
+                    
+                    // Load new gif to inactive layer
+                    await this.loadGifToLayer(gifId, inactiveLayer);
+                    
+                    // Hide loading state
+                    this.hideLoadingState();
+                    
+                    // Smooth transition between layers
+                    activeLayer.classList.add('fade-out');
+                    inactiveLayer.classList.add('active');
+                    
+                    // Clean up after transition
+                    setTimeout(() => {
+                        activeLayer.classList.remove('active', 'fade-out');
+                        this.currentLayer = this.currentLayer === 1 ? 2 : 1;
+                    }, 600);
+                    
+                    // Start timer for next gif
+                    this.startTimer();
+                    
+                    // Preload next gif for smoother experience
+                    setTimeout(() => {
+                        const nextGifId = this.getRandomGifId();
+                        if (nextGifId && !this.preloadedGifs.has(nextGifId)) {
+                            this.preloadGif(nextGifId).catch(() => {});
+                        }
+                    }, 1000);
+                    
+                } catch (error) {
+                    console.error('Error loading gif:', error);
+                    this.hideLoadingState();
+                    this.showError('Failed to load gif. Trying another...');
+                    
+                    setTimeout(() => {
+                        this.isLoading = false;
+                        this.nextGif();
+                    }, 1500);
+                    return;
+                }
+                
+                this.isLoading = false;
+            }
+            
+            handleInteraction(event) {
+                // Add ripple effect at click/touch position
+                this.createRipple(event);
+                this.nextGif();
+            }
+            
+            createRipple(event) {
+                const container = this.elements.gifContainer;
+                const ripple = document.createElement('div');
+                
+                const rect = container.getBoundingClientRect();
+                const x = (event.clientX || event.touches?.[0]?.clientX || rect.width / 2) - rect.left;
+                const y = (event.clientY || event.touches?.[0]?.clientY || rect.height / 2) - rect.top;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.3);
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                    pointer-events: none;
+                    z-index: 100;
+                    left: ${x}px;
+                    top: ${y}px;
+                    width: 0;
+                    height: 0;
+                `;
+                
+                container.appendChild(ripple);
+                
+                // Add ripple animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes ripple {
+                        to {
+                            transform: scale(4);
+                            opacity: 0;
+                            width: 100px;
+                            height: 100px;
+                            margin-left: -50px;
+                            margin-top: -50px;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                setTimeout(() => {
+                    container.removeChild(ripple);
+                    document.head.removeChild(style);
+                }, 600);
+            }
+            
+            showError(message) {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = message;
+                
+                document.body.appendChild(errorDiv);
+                
+                setTimeout(() => {
+                    if (errorDiv.parentNode) {
+                        errorDiv.style.animation = 'slideIn 0.3s ease reverse';
+                        setTimeout(() => {
+                            if (errorDiv.parentNode) {
+                                errorDiv.parentNode.removeChild(errorDiv);
+                            }
+                        }, 300);
+                    }
+                }, 2000);
+            }
+
+            openModal() {
+                this.elements.modalOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeModal() {
+                this.elements.modalOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+                // Reset copy button text if it was changed
+                this.elements.copyButton.textContent = 'Copy';
+                this.elements.copyButton.classList.remove('copied');
+            }
+
+            async copyEmbedCode() {
+                const code = this.elements.embedCode.textContent;
+                
+                try {
+                    await navigator.clipboard.writeText(code);
+                    this.elements.copyButton.textContent = '✓ Copied!';
+                    this.elements.copyButton.classList.add('copied');
+                    
+                    setTimeout(() => {
+                        this.elements.copyButton.textContent = 'Copy';
+                        this.elements.copyButton.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    // Fallback for browsers that don't support clipboard API
+                    const textArea = document.createElement('textarea');
+                    textArea.value = code;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        this.elements.copyButton.textContent = '✓ Copied!';
+                        this.elements.copyButton.classList.add('copied');
+                        
+                        setTimeout(() => {
+                            this.elements.copyButton.textContent = 'Copy';
+                            this.elements.copyButton.classList.remove('copied');
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy text: ', err);
+                        this.elements.copyButton.textContent = 'Failed';
+                        setTimeout(() => {
+                            this.elements.copyButton.textContent = 'Copy';
+                        }, 2000);
+                    }
+                    
+                    document.body.removeChild(textArea);
+                }
+            }
+        }
+        
+        // Start the app
+        window.addEventListener('DOMContentLoaded', () => {
+            new OptimizedGoatGifApp();
+        });
+    </script>
+</body>
+</html>
