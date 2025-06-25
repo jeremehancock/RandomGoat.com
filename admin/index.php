@@ -1,11 +1,39 @@
 <?php
-// Goat Gallery Admin - Single File PHP App
+// Goat Gallery Admin - Single File PHP App with Dark Theme & Auth
 session_start();
 
 // Configuration
 $dataFile = '../data/goats.txt';
 $perPage = 12;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+
+// Simple auth credentials (in production, use hashed passwords)
+$adminUsername = 'admin';
+$adminPassword = 'mko0)OKM'; // Change this!
+
+// Check if user is logged in
+$isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
+
+// Handle login
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
+    $username = $_POST['username'] ?? '';
+    $password = $_POST['password'] ?? '';
+    
+    if ($username === $adminUsername && $password === $adminPassword) {
+        $_SESSION['logged_in'] = true;
+        header('Location: ' . $_SERVER['PHP_SELF']);
+        exit;
+    } else {
+        $loginError = 'Invalid username or password';
+    }
+}
+
+// Handle logout
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+}
 
 // Ensure data directory exists
 $dataDir = dirname($dataFile);
@@ -54,11 +82,11 @@ function saveGoatIds($file, $ids) {
     return file_put_contents($file, $content) !== false;
 }
 
-// Handle form submissions
+// Handle form submissions (only if logged in)
 $message = '';
 $messageType = '';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action'])) {
         $goatIds = readGoatIds($dataFile);
         
@@ -110,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Get current goat IDs and pagination info
-$allGoatIds = readGoatIds($dataFile);
+$allGoatIds = $isLoggedIn ? readGoatIds($dataFile) : [];
 $totalGoats = count($allGoatIds);
 $totalPages = ceil($totalGoats / $perPage);
 $offset = ($page - 1) * $perPage;
@@ -122,8 +150,28 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goat Gallery Admin</title>
+    <title>Random Goat Admin</title>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Looking for random goat gifs? Look no further!"/>
     <style>
+        :root {
+            --bg-primary: #0f0f0f;
+            --bg-secondary: #1a1a1a;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #b3b3b3;
+            --text-muted: #6b7280;
+            --accent-primary: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: #374151;
+            --shadow: rgba(0, 0, 0, 0.3);
+        }
+        
         * {
             margin: 0;
             padding: 0;
@@ -132,9 +180,10 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #f5f5f5;
-            color: #333;
+            background: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
+            min-height: 100vh;
         }
         
         .container {
@@ -144,274 +193,498 @@ $currentGoats = array_slice($allGoatIds, $offset, $perPage);
         }
         
         .header {
-            background: #fff;
+            background: var(--bg-secondary);
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow);
             margin-bottom: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
         }
         
-        .header h1 {
-            color: #2c3e50;
+        .header-content h1 {
+            color: var(--text-primary);
             margin-bottom: 10px;
+            font-size: 2rem;
         }
         
         .stats {
-            color: #7f8c8d;
+            color: var(--text-secondary);
             font-size: 14px;
         }
         
+        .logout-btn {
+            background: var(--error);
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background: #dc2626;
+        }
+        
         .message {
-            padding: 12px;
-            border-radius: 4px;
+            padding: 16px;
+            border-radius: 8px;
             margin-bottom: 20px;
             font-weight: 500;
+            border: 1px solid;
         }
         
         .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border-color: var(--success);
         }
         
         .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border-color: var(--error);
         }
         
         .message.warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border-color: var(--warning);
         }
         
         .controls {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: var(--bg-secondary);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px var(--shadow);
             margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .controls h3 {
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            font-size: 1.25rem;
         }
         
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 500;
-            color: #2c3e50;
+            color: var(--text-primary);
         }
         
-        input[type="url"], input[type="text"] {
+        input[type="url"], input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 10px;
-            border: 2px solid #e1e8ed;
-            border-radius: 4px;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
             font-size: 14px;
-            transition: border-color 0.3s;
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
         
-        input[type="url"]:focus, input[type="text"]:focus {
+        input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
-            border-color: #3498db;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
         .btn {
-            background: #3498db;
+            background: var(--accent-primary);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            transition: background 0.3s;
+            transition: background 0.3s, transform 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .btn:hover {
-            background: #2980b9;
+            background: var(--accent-hover);
+            transform: translateY(-1px);
         }
         
         .btn.danger {
-            background: #e74c3c;
+            background: var(--error);
         }
         
         .btn.danger:hover {
-            background: #c0392b;
+            background: #dc2626;
         }
         
         .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
             margin-bottom: 30px;
         }
         
         .goat-item {
-            background: #fff;
-            border-radius: 8px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px var(--shadow);
+            border: 1px solid var(--border);
             transition: transform 0.3s, box-shadow 0.3s;
         }
         
         .goat-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px var(--shadow);
         }
         
         .goat-gif {
             width: 100%;
-            height: 200px;
+            height: 220px;
             object-fit: cover;
         }
         
         .goat-info {
-            padding: 15px;
+            padding: 20px;
         }
         
         .goat-id {
-            font-family: monospace;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
-            color: #7f8c8d;
-            margin-bottom: 10px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+            background: var(--bg-tertiary);
+            padding: 8px 12px;
+            border-radius: 6px;
         }
         
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin: 30px 0;
+            gap: 12px;
+            margin: 40px 0;
         }
         
         .pagination a, .pagination span {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
             text-decoration: none;
-            color: #333;
-            border-radius: 4px;
+            color: var(--text-primary);
+            border-radius: 8px;
             transition: all 0.3s;
+            background: var(--bg-secondary);
         }
         
         .pagination a:hover {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            transform: translateY(-1px);
         }
         
         .pagination .current {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
         }
         
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
+            padding: 80px 20px;
+            color: var(--text-secondary);
         }
         
         .empty-state h3 {
-            margin-bottom: 10px;
-            font-size: 18px;
+            margin-bottom: 12px;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-content {
+            background: var(--bg-secondary);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            max-width: 400px;
+            width: 90%;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        
+        .modal-header h2 {
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        
+        .modal-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .login-error {
+            color: var(--error);
+            font-size: 14px;
+            margin-top: 12px;
+            text-align: center;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         
         @media (max-width: 768px) {
             .container {
-                padding: 10px;
+                padding: 15px;
             }
             
             .gallery {
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 15px;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+            
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .modal-content {
+                margin: 20px;
+                padding: 24px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🐐 Goat Gallery Admin</h1>
-            <div class="stats">
-                Total Goats: <?php echo $totalGoats; ?> | 
-                Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
-            </div>
-        </div>
-        
-        <?php if ($message): ?>
-            <div class="message <?php echo $messageType; ?>">
-                <?php echo htmlspecialchars($message); ?>
-            </div>
-        <?php endif; ?>
-        
-        <div class="controls">
-            <h3>Add New Goat</h3>
-            <form method="POST">
-                <input type="hidden" name="action" value="add">
-                <div class="form-group">
-                    <label for="giphy_url">Giphy URL:</label>
-                    <input type="url" id="giphy_url" name="giphy_url" 
-                           placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+    <?php if (!$isLoggedIn): ?>
+        <!-- Login Modal -->
+        <div class="modal show">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🐐 Admin Login</h2>
+                    <p>Please enter your credentials to access the Goat Gallery</p>
                 </div>
-                <button type="submit" class="btn">Add Goat</button>
-            </form>
-        </div>
-        
-        <?php if (empty($currentGoats)): ?>
-            <div class="empty-state">
-                <h3>No goats found</h3>
-                <p>Add some goats using the form above!</p>
-            </div>
-        <?php else: ?>
-            <div class="gallery">
-                <?php foreach ($currentGoats as $goatId): ?>
-                    <div class="goat-item">
-                        <img src="https://media.giphy.com/media/<?php echo htmlspecialchars($goatId); ?>/giphy.gif" 
-                             alt="Goat GIF" class="goat-gif" loading="lazy">
-                        <div class="goat-info">
-                            <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
-                            <form method="POST" style="display: inline;" 
-                                  onsubmit="return confirm('Are you sure you want to delete this goat?');">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="goat_id" value="<?php echo htmlspecialchars($goatId); ?>">
-                                <button type="submit" class="btn danger">Delete</button>
-                            </form>
-                        </div>
+                <form method="POST">
+                    <div class="form-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" name="username" required>
                     </div>
-                <?php endforeach; ?>
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" name="login" class="btn" style="width: 100%;">Login</button>
+                    <?php if (isset($loginError)): ?>
+                        <div class="login-error"><?php echo htmlspecialchars($loginError); ?></div>
+                    <?php endif; ?>
+                </form>
+            </div>
+        </div>
+    <?php else: ?>
+        <div class="container">
+            <div class="header">
+                <div class="header-content">
+                    <h1>🐐 Goat Gallery Admin</h1>
+                    <div class="stats">
+                        Total Goats: <?php echo $totalGoats; ?> | 
+                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                    </div>
+                </div>
+                <a href="?logout=1" class="logout-btn">Logout</a>
             </div>
             
-            <?php if ($totalPages > 1): ?>
-                <div class="pagination">
-                    <?php if ($page > 1): ?>
-                        <a href="?page=1">First</a>
-                        <a href="?page=<?php echo $page - 1; ?>">Previous</a>
-                    <?php endif; ?>
-                    
-                    <?php
-                    $start = max(1, $page - 2);
-                    $end = min($totalPages, $page + 2);
-                    
-                    for ($i = $start; $i <= $end; $i++):
-                    ?>
-                        <?php if ($i == $page): ?>
-                            <span class="current"><?php echo $i; ?></span>
-                        <?php else: ?>
-                            <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                        <?php endif; ?>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $totalPages): ?>
-                        <a href="?page=<?php echo $page + 1; ?>">Next</a>
-                        <a href="?page=<?php echo $totalPages; ?>">Last</a>
-                    <?php endif; ?>
+            <?php if ($message): ?>
+                <div class="message <?php echo $messageType; ?>">
+                    <?php echo htmlspecialchars($message); ?>
                 </div>
             <?php endif; ?>
-        <?php endif; ?>
-    </div>
+            
+            <div class="controls">
+                <h3>Add New Goat</h3>
+                <form method="POST">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-group">
+                        <label for="giphy_url">Giphy URL:</label>
+                        <input type="url" id="giphy_url" name="giphy_url" 
+                               placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                    </div>
+                    <button type="submit" class="btn">Add Goat</button>
+                </form>
+            </div>
+            
+            <?php if (empty($currentGoats)): ?>
+                <div class="empty-state">
+                    <h3>No goats found</h3>
+                    <p>Add some goats using the form above!</p>
+                </div>
+            <?php else: ?>
+                <div class="gallery">
+                    <?php foreach ($currentGoats as $goatId): ?>
+                        <div class="goat-item">
+                            <img src="https://media.giphy.com/media/<?php echo htmlspecialchars($goatId); ?>/giphy.gif" 
+                                 alt="Goat GIF" class="goat-gif" loading="lazy">
+                            <div class="goat-info">
+                                <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
+                                <button type="button" class="btn danger" 
+                                        onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                
+                <?php if ($totalPages > 1): ?>
+                    <div class="pagination">
+                        <?php if ($page > 1): ?>
+                            <a href="?page=1">First</a>
+                            <a href="?page=<?php echo $page - 1; ?>">Previous</a>
+                        <?php endif; ?>
+                        
+                        <?php
+                        $start = max(1, $page - 2);
+                        $end = min($totalPages, $page + 2);
+                        
+                        for ($i = $start; $i <= $end; $i++):
+                        ?>
+                            <?php if ($i == $page): ?>
+                                <span class="current"><?php echo $i; ?></span>
+                            <?php else: ?>
+                                <a href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                            <?php endif; ?>
+                        <?php endfor; ?>
+                        
+                        <?php if ($page < $totalPages): ?>
+                            <a href="?page=<?php echo $page + 1; ?>">Next</a>
+                            <a href="?page=<?php echo $totalPages; ?>">Last</a>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Delete Confirmation Modal -->
+        <div id="deleteModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Delete Goat</h2>
+                    <p>Are you sure you want to delete this goat? This action cannot be undone.</p>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
+                    <button type="button" class="btn danger" onclick="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Hidden form for deletion -->
+        <form id="deleteForm" method="POST" style="display: none;">
+            <input type="hidden" name="action" value="delete">
+            <input type="hidden" name="goat_id" id="deleteGoatId">
+        </form>
+    <?php endif; ?>
+    
+    <script>
+        let goatToDelete = '';
+        
+        function showDeleteModal(goatId) {
+            goatToDelete = goatId;
+            document.getElementById('deleteModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+            document.body.style.overflow = '';
+            goatToDelete = '';
+        }
+        
+        function confirmDelete() {
+            if (goatToDelete) {
+                document.getElementById('deleteGoatId').value = goatToDelete;
+                document.getElementById('deleteForm').submit();
+            }
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideDeleteModal();
+            }
+        });
+    </script>
 </body>
 </html>
