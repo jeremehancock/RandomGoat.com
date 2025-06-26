@@ -929,7 +929,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			.pagination {
 				padding: 20px 16px;
 				margin: 0;
-				gap: 8px;
+				gap: 6px;
 				justify-content: center;
 				flex-wrap: wrap;
 				overflow-x: visible;
@@ -937,14 +937,13 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			}
 			
 			.pagination a, .pagination span {
-				padding: 12px 14px;
-				min-width: 46px;
-				min-height: 46px;
-				border-radius: 10px;
-				font-size: 14px;
+				padding: 10px 12px;
+				min-width: 40px;
+				min-height: 40px;
+				border-radius: 8px;
+				font-size: 13px;
 				flex-shrink: 1;
 				touch-action: manipulation;
-				max-width: calc((100vw - 120px) / 6); /* Ensure max 6 buttons fit with larger size */
 				text-align: center;
 				display: flex;
 				align-items: center;
@@ -952,14 +951,6 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				white-space: nowrap;
 				overflow: hidden;
 				text-overflow: ellipsis;
-			}
-			
-			/* Smaller numbered page buttons for better fit */
-			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
-			.pagination span.current {
-				font-size: 13px;
-				min-width: 42px;
-				padding: 10px 12px;
 			}
 			
 			/* Mobile modal improvements */
@@ -1108,61 +1099,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			
 			.pagination {
 				padding: 16px 12px;
+				gap: 4px;
 			}
 			
 			.pagination a, .pagination span {
-				padding: 10px 10px;
-				min-width: 38px;
-				min-height: 38px;
-				font-size: 12px;
-				gap: 6px;
-				max-width: calc((100vw - 80px) / 6); /* Adjust for larger buttons */
-			}
-			
-			/* Even smaller numbered buttons on small screens */
-			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
-			.pagination span.current {
-				font-size: 11px;
-				min-width: 34px;
 				padding: 8px 10px;
-			}
-			
-			.modal-content {
-				margin: 16px 12px;
-				padding: 20px;
-				width: calc(100% - 24px);
-			}
-			
-			.message {
-				margin: 12px;
-			}
-			
-			.empty-state {
-				margin: 16px 12px;
-				padding: 40px 16px;
-			}
-		}
-			
-			.controls {
-				margin: 16px 12px;
-				padding: 16px;
-			}
-			
-			.control-section {
-				padding: 16px;
-			}
-			
-			.gallery {
-				padding: 0 12px;
-				gap: 12px;
-			}
-			
-			.goat-gif {
-				height: 220px;
-			}
-			
-			.pagination {
-				padding: 16px 12px;
+				min-width: 36px;
+				min-height: 36px;
+				font-size: 12px;
 			}
 			
 			.modal-content {
@@ -1225,13 +1169,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			/* Landscape pagination adjustments */
 			.pagination {
 				padding: 16px 20px;
-				gap: 8px;
+				gap: 6px;
 			}
 			
 			.pagination a, .pagination span {
-				padding: 10px 16px;
-				min-width: 48px;
-				max-width: calc((100vw - 160px) / 7); /* More space in landscape */
+				padding: 8px 12px;
+				min-width: 40px;
 			}
 		}
     </style>
@@ -1365,18 +1308,41 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                     <div class="pagination">
                         <?php 
                         $searchParam = $search ? '&search=' . urlencode($search) : '';
+                        
+                        // Enhanced pagination logic to limit to maximum 8 buttons
+                        $maxButtons = 8;
+                        $buttons = [];
+                        
+                        // Always try to include Previous/Next if applicable
+                        $hasPrevious = $page > 1;
+                        $hasNext = $page < $totalPages;
+                        
+                        // Calculate how many page number buttons we can show
+                        $navButtons = ($hasPrevious ? 1 : 0) + ($hasNext ? 1 : 0);
+                        $maxPageButtons = $maxButtons - $navButtons;
+                        
+                        // If we have 8 or fewer total pages, show all pages
+                        if ($totalPages <= $maxPageButtons) {
+                            $startPage = 1;
+                            $endPage = $totalPages;
+                        } else {
+                            // Smart pagination - center around current page
+                            $halfRange = floor($maxPageButtons / 2);
+                            $startPage = max(1, $page - $halfRange);
+                            $endPage = min($totalPages, $startPage + $maxPageButtons - 1);
+                            
+                            // Adjust if we're too close to the end
+                            if ($endPage - $startPage + 1 < $maxPageButtons) {
+                                $startPage = max(1, $endPage - $maxPageButtons + 1);
+                            }
+                        }
                         ?>
-                        <?php if ($page > 1): ?>
-                            <a href="?page=1<?php echo $searchParam; ?>">First</a>
+                        
+                        <?php if ($hasPrevious): ?>
                             <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Previous</a>
                         <?php endif; ?>
                         
-                        <?php
-                        $start = max(1, $page - 2);
-                        $end = min($totalPages, $page + 2);
-                        
-                        for ($i = $start; $i <= $end; $i++):
-                        ?>
+                        <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
                             <?php if ($i == $page): ?>
                                 <span class="current"><?php echo $i; ?></span>
                             <?php else: ?>
@@ -1384,9 +1350,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                             <?php endif; ?>
                         <?php endfor; ?>
                         
-                        <?php if ($page < $totalPages): ?>
+                        <?php if ($hasNext): ?>
                             <a href="?page=<?php echo $page + 1; ?><?php echo $searchParam; ?>">Next</a>
-                            <a href="?page=<?php echo $totalPages; ?><?php echo $searchParam; ?>">Last</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
