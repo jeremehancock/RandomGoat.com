@@ -173,11 +173,15 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             --text-primary: #ffffff;
             --text-secondary: #b3b3b3;
             --text-muted: #6b7280;
-            --accent-primary: #3b82f6;
-            --accent-hover: #2563eb;
+            --accent-primary: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-secondary: #6366f1;
             --success: #10b981;
-            --error: #ef4444;
-            --warning: #f59e0b;
+            --success-hover: #059669;
+            --error: #f87171;
+            --error-hover: #ef4444;
+            --warning: #fbbf24;
+            --warning-hover: #f59e0b;
             --border: #374151;
             --shadow: rgba(0, 0, 0, 0.3);
         }
@@ -230,18 +234,22 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         .logout-btn {
             background: var(--error);
             color: white;
-            padding: 8px 16px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
             text-decoration: none;
             display: inline-block;
-            transition: background 0.3s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(248, 113, 113, 0.3);
         }
         
         .logout-btn:hover {
-            background: #dc2626;
+            background: var(--error-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(248, 113, 113, 0.4);
         }
         
         .message {
@@ -259,13 +267,13 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         }
         
         .message.error {
-            background: rgba(239, 68, 68, 0.1);
+            background: rgba(248, 113, 113, 0.1);
             color: var(--error);
             border-color: var(--error);
         }
         
         .message.warning {
-            background: rgba(245, 158, 11, 0.1);
+            background: rgba(251, 191, 36, 0.1);
             color: var(--warning);
             border-color: var(--warning);
         }
@@ -283,7 +291,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            align-items: start;
+            align-items: stretch;
         }
         
         .control-section {
@@ -291,12 +299,33 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             padding: 20px;
             border-radius: 8px;
             border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            min-height: 200px;
         }
         
-        .controls h3 {
+        .control-section h3 {
             margin-bottom: 20px;
             color: var(--text-primary);
             font-size: 1.25rem;
+        }
+        
+        .control-section form {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        
+        .form-content {
+            flex: 1;
+        }
+        
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: auto;
+            padding-top: 20px;
         }
         
         .form-group {
@@ -324,36 +353,76 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
         
         .btn {
             background: var(--accent-primary);
             color: white;
-            padding: 12px 24px;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 500;
-            transition: background 0.3s, transform 0.2s;
+            font-weight: 600;
+            transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+            min-width: 100px;
         }
         
         .btn:hover {
             background: var(--accent-hover);
             transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn.success {
+            background: var(--success);
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn.success:hover {
+            background: var(--success-hover);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
         }
         
         .btn.danger {
             background: var(--error);
+            box-shadow: 0 2px 4px rgba(248, 113, 113, 0.3);
         }
         
         .btn.danger:hover {
-            background: #dc2626;
+            background: var(--error-hover);
+            box-shadow: 0 4px 8px rgba(248, 113, 113, 0.4);
+        }
+        
+        .btn.warning {
+            background: var(--warning);
+            color: #1f2937;
+            box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+        }
+        
+        .btn.warning:hover {
+            background: var(--warning-hover);
+            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+            box-shadow: 0 2px 4px rgba(55, 65, 81, 0.3);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+            border-color: var(--text-secondary);
+            box-shadow: 0 4px 8px rgba(55, 65, 81, 0.4);
         }
         
         .gallery {
@@ -374,15 +443,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             box-shadow: 0 4px 6px var(--shadow);
             border: 1px solid var(--border);
             transition: transform 0.3s, box-shadow 0.3s;
-        }
-        
-        .goat-item {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px var(--shadow);
-            border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         
         .goat-item:hover {
@@ -398,6 +461,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         .goat-info {
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
         }
         
         .goat-id {
@@ -408,6 +474,13 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             background: var(--bg-tertiary);
             padding: 8px 12px;
             border-radius: 6px;
+            flex: 1;
+        }
+        
+        .goat-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: auto;
         }
         
         .pagination {
@@ -420,23 +493,27 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         .pagination a, .pagination span {
             padding: 10px 16px;
-            border: 1px solid var(--border);
+            border: 2px solid var(--border);
             text-decoration: none;
             color: var(--text-primary);
             border-radius: 8px;
             transition: all 0.3s;
             background: var(--bg-secondary);
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(55, 65, 81, 0.2);
         }
         
         .pagination a:hover {
             background: var(--accent-primary);
             border-color: var(--accent-primary);
             transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
         }
         
         .pagination .current {
             background: var(--accent-primary);
             border-color: var(--accent-primary);
+            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
         }
         
         .empty-state {
@@ -500,18 +577,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         .modal-buttons {
             display: flex;
             gap: 12px;
-            justify-content: center;
+            justify-content: flex-end;
             margin-top: 24px;
-        }
-        
-        .btn-secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-        
-        .btn-secondary:hover {
-            background: var(--border);
         }
         
         .login-error {
@@ -561,6 +628,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 margin: 20px;
                 padding: 24px;
             }
+            
+            .form-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .modal-buttons {
+                flex-direction: column-reverse;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -581,7 +658,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
-                    <button type="submit" name="login" class="btn" style="width: 100%;">Login</button>
+                    <button type="submit" name="login" class="btn success" style="width: 100%;">Login</button>
                     <?php if (isset($loginError)): ?>
                         <div class="login-error"><?php echo htmlspecialchars($loginError); ?></div>
                     <?php endif; ?>
@@ -618,29 +695,35 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <h3>Add New Goat</h3>
                         <form method="POST">
                             <input type="hidden" name="action" value="add">
-                            <div class="form-group">
-                                <label for="giphy_url">Giphy URL:</label>
-                                <input type="url" id="giphy_url" name="giphy_url" 
-                                       placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                            <div class="form-content">
+                                <div class="form-group">
+                                    <label for="giphy_url">Giphy URL:</label>
+                                    <input type="url" id="giphy_url" name="giphy_url" 
+                                           placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                                </div>
                             </div>
-                            <button type="submit" class="btn">Add Goat</button>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn success">Add Goat</button>
+                            </div>
                         </form>
                     </div>
                     
                     <div class="control-section">
                         <h3>Search Gallery</h3>
                         <form method="GET">
-                            <div class="form-group">
-                                <label for="search">Search by Goat ID:</label>
-                                <input type="text" id="search" name="search" 
-                                       placeholder="Enter part of goat ID..." 
-                                       value="<?php echo htmlspecialchars($search); ?>">
+                            <div class="form-content">
+                                <div class="form-group">
+                                    <label for="search">Search by Goat ID:</label>
+                                    <input type="text" id="search" name="search" 
+                                           placeholder="Enter part of goat ID..." 
+                                           value="<?php echo htmlspecialchars($search); ?>">
+                                </div>
                             </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button type="submit" class="btn">🔍 Search</button>
+                            <div class="form-buttons">
                                 <?php if ($search): ?>
                                     <a href="?" class="btn btn-secondary">Clear</a>
                                 <?php endif; ?>
+                                <button type="submit" class="btn">🔍 Search</button>
                             </div>
                         </form>
                     </div>
@@ -666,10 +749,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                  alt="Goat GIF" class="goat-gif" loading="lazy">
                             <div class="goat-info">
                                 <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
-                                <button type="button" class="btn danger" 
-                                        onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
-                                    Delete
-                                </button>
+                                <div class="goat-actions">
+                                    <button type="button" class="btn danger" 
+                                            onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
+                                        Delete
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
