@@ -159,11 +159,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Random Goat Admin</title>
     <meta charset="UTF-8">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Goat Admin">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Looking for random goat gifs? Look no further!"/>
     <style>
         :root {
@@ -190,6 +193,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -198,6 +202,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             color: var(--text-primary);
             line-height: 1.6;
             min-height: 100vh;
+            min-height: 100dvh;
+            overscroll-behavior: none;
+            touch-action: manipulation;
         }
         
         .container {
@@ -218,6 +225,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            position: sticky;
+            top: 10px;
+            z-index: 100;
+            backdrop-filter: blur(10px);
         }
         
         .header-content h1 {
@@ -261,10 +272,11 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         .message {
             padding: 16px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 20px;
             font-weight: 500;
             border: 1px solid;
+            animation: slideInDown 0.3s ease-out;
         }
         
         .message.success {
@@ -350,29 +362,30 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         input[type="url"], input[type="text"], input[type="password"] {
             width: 100%;
-            padding: 12px;
+            padding: 16px;
             border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 16px;
             background: var(--bg-primary);
             color: var(--text-primary);
-            transition: border-color 0.3s, box-shadow 0.3s;
+            transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
         }
         
         input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
+            box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.15);
+            transform: translateY(-2px);
         }
         
         .btn {
             background: var(--accent-primary);
             color: #ffffff;
-            padding: 12px 20px;
+            padding: 16px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             transition: all 0.2s ease;
             display: inline-flex;
@@ -380,68 +393,74 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             gap: 8px;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
-            min-width: 110px;
-            min-height: 44px;
+            box-shadow: 0 4px 8px rgba(91, 33, 182, 0.4);
+            min-width: 120px;
+            min-height: 48px;
             width: auto;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
             flex-shrink: 0;
+            touch-action: manipulation;
+        }
+        
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 4px rgba(91, 33, 182, 0.3);
         }
         
         .btn:hover {
             background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 5px 10px rgba(91, 33, 182, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(91, 33, 182, 0.5);
         }
         
         .btn.success {
             background: var(--success);
-            box-shadow: 0 3px 6px rgba(5, 150, 105, 0.4);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.4);
             color: #ffffff;
         }
         
         .btn.success:hover {
             background: var(--success-hover);
-            box-shadow: 0 5px 10px rgba(5, 150, 105, 0.5);
+            box-shadow: 0 6px 12px rgba(5, 150, 105, 0.5);
         }
         
         .btn.danger {
             background: var(--error);
-            box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.4);
             color: #ffffff;
         }
         
         .btn.danger:hover {
             background: var(--error-hover);
-            box-shadow: 0 5px 10px rgba(220, 38, 38, 0.5);
+            box-shadow: 0 6px 12px rgba(220, 38, 38, 0.5);
         }
         
         .btn.warning {
             background: var(--warning);
             color: #ffffff;
-            box-shadow: 0 3px 6px rgba(217, 119, 6, 0.4);
+            box-shadow: 0 4px 8px rgba(217, 119, 6, 0.4);
         }
         
         .btn.warning:hover {
             background: var(--warning-hover);
-            box-shadow: 0 5px 10px rgba(217, 119, 6, 0.5);
+            box-shadow: 0 6px 12px rgba(217, 119, 6, 0.5);
         }
         
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: 1px solid var(--border);
-            box-shadow: 0 3px 6px rgba(55, 65, 81, 0.3);
+            box-shadow: 0 4px 8px rgba(55, 65, 81, 0.3);
             font-weight: 600;
-            min-width: 110px;
-            min-height: 44px;
+            min-width: 120px;
+            min-height: 48px;
             flex-shrink: 0;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 14px;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -450,13 +469,19 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             transition: all 0.2s ease;
             cursor: pointer;
             box-sizing: border-box;
+            touch-action: manipulation;
         }
         
         .btn-secondary:hover {
             background: var(--border);
             border-color: var(--text-secondary);
-            box-shadow: 0 5px 10px rgba(55, 65, 81, 0.4);
+            box-shadow: 0 6px 12px rgba(55, 65, 81, 0.4);
             color: var(--text-primary);
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary:active {
+            transform: translateY(1px);
         }
         
         .gallery {
@@ -472,27 +497,33 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             width: 100%;
             justify-self: center;
             background: var(--bg-secondary);
-            border-radius: 12px;
-            overflow: visible;
+            border-radius: 16px;
+            overflow: hidden;
             box-shadow: 0 4px 6px var(--shadow);
             border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             height: 100%;
             position: relative;
+            animation: fadeInUp 0.5s ease-out;
         }
         
         .goat-item:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px var(--shadow);
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px var(--shadow);
         }
         
         .goat-gif {
             width: 100%;
             height: 220px;
             object-fit: cover;
-            border-radius: 12px 12px 0 0;
+            border-radius: 16px 16px 0 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .goat-item:hover .goat-gif {
+            transform: scale(1.05);
         }
         
         .goat-info {
@@ -508,9 +539,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             color: var(--text-muted);
             margin-bottom: 15px;
             background: var(--bg-tertiary);
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border-radius: 8px;
             flex: 1;
+            border: 1px solid var(--border);
         }
         
         .goat-actions {
@@ -518,6 +550,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             justify-content: space-between;
             align-items: center;
             margin-top: auto;
+            gap: 12px;
         }
         
         .goat-links {
@@ -530,26 +563,31 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 6px;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
             text-decoration: none;
             transition: all 0.2s ease;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             border: 1px solid var(--border);
+            touch-action: manipulation;
         }
         
         .goat-link.randomgoat {
             background: var(--accent-primary);
             color: #ffffff;
-            box-shadow: 0 2px 4px rgba(91, 33, 182, 0.3);
+            box-shadow: 0 3px 6px rgba(91, 33, 182, 0.3);
         }
         
         .goat-link.randomgoat:hover {
             background: var(--accent-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(91, 33, 182, 0.4);
+        }
+        
+        .goat-link.randomgoat:active {
+            transform: translateY(0);
         }
         
         /* Custom Tooltip Styles */
@@ -567,7 +605,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             background: var(--bg-primary);
             color: var(--text-primary);
             padding: 8px 12px;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 500;
             white-space: nowrap;
@@ -608,34 +646,40 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
             margin: 40px 0;
+            flex-wrap: wrap;
         }
         
         .pagination a, .pagination span {
-            padding: 10px 16px;
+            padding: 12px 16px;
             border: 2px solid var(--border);
             text-decoration: none;
             color: var(--text-primary);
-            border-radius: 8px;
+            border-radius: 12px;
             transition: all 0.3s;
             background: var(--bg-secondary);
             font-weight: 600;
             box-shadow: 0 2px 4px rgba(55, 65, 81, 0.2);
-            min-width: 44px;
-            min-height: 44px;
+            min-width: 48px;
+            min-height: 48px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            touch-action: manipulation;
         }
         
         .pagination a:hover {
             background: var(--accent-primary);
             border-color: var(--accent-primary);
-            transform: translateY(-1px);
+            transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(91, 33, 182, 0.4);
             color: #ffffff;
+        }
+        
+        .pagination a:active {
+            transform: translateY(0);
         }
         
         .pagination .current {
@@ -650,6 +694,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             text-align: center;
             padding: 80px 20px;
             color: var(--text-secondary);
+            animation: fadeIn 0.5s ease-out;
         }
         
         .empty-state h3 {
@@ -668,7 +713,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
+            padding: 20px;
         }
         
         .modal.show {
@@ -681,12 +727,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         .modal-content {
             background: var(--bg-secondary);
             padding: 32px;
-            border-radius: 16px;
+            border-radius: 24px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border);
             max-width: 400px;
-            width: 90%;
-            animation: slideIn 0.3s ease-out;
+            width: 100%;
+            animation: slideInUp 0.3s ease-out;
+            max-height: 90vh;
+            overflow-y: auto;
         }
         
         .modal-header {
@@ -716,14 +764,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             font-size: 14px;
             margin-top: 12px;
             text-align: center;
+            animation: shake 0.5s ease-in-out;
         }
         
+        /* Animations */
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
         
-        @keyframes slideIn {
+        @keyframes slideInDown {
             from { 
                 opacity: 0;
                 transform: translateY(-20px);
@@ -734,256 +784,322 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             }
         }
         
+        @keyframes slideInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        /* Mobile Optimizations */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            body {
+                font-size: 16px;
+                overflow-x: hidden;
             }
             
-            .gallery {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 20px;
+            .container {
+                padding: 10px;
+                padding-bottom: 80px; /* Extra bottom padding for mobile */
             }
             
             .header {
-                flex-direction: column;
-                text-align: center;
+                position: sticky;
+                top: 0;
+                margin: 0 0 16px 0;
+                border-radius: 0 0 16px 16px;
+                padding: 16px;
+                backdrop-filter: blur(20px);
+                background: rgba(26, 26, 26, 0.95);
+            }
+            
+            .header-content h1 {
+                font-size: 1.5rem;
+                margin-bottom: 8px;
+            }
+            
+            .stats {
+                font-size: 13px;
+            }
+            
+            .logout-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-width: 80px;
+                min-height: 40px;
+            }
+            
+            .controls {
+                padding: 16px;
+                border-radius: 16px;
+                margin-bottom: 16px;
             }
             
             .controls-grid {
                 grid-template-columns: 1fr;
-                gap: 20px;
+                gap: 16px;
             }
             
-            .modal-content {
-                margin: 20px;
-                padding: 24px;
+            .control-section {
+                min-height: auto;
+                padding: 16px;
+                border-radius: 12px;
+            }
+            
+            .control-section h3 {
+                font-size: 1.1rem;
+                margin-bottom: 16px;
             }
             
             .form-buttons {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 12px;
+                padding-top: 16px;
+                min-height: auto;
+            }
+            
+            .btn, .btn-secondary {
+                width: 100%;
+                padding: 16px;
+                font-size: 16px;
+                min-height: 48px;
+                border-radius: 12px;
+            }
+            
+            input[type="url"], input[type="text"], input[type="password"] {
+                padding: 16px;
+                font-size: 16px;
+                border-radius: 12px;
+            }
+            
+            .gallery {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            
+            .goat-item {
+                max-width: 100%;
+                border-radius: 16px;
+                margin: 0;
+                animation-delay: calc(var(--index, 0) * 0.1s);
+            }
+            
+            .goat-gif {
+                height: 240px;
+            }
+            
+            .goat-info {
+                padding: 16px;
+            }
+            
+            .goat-actions {
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            
+            .goat-link {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            
+            .btn.danger {
+                padding: 12px 16px;
+                font-size: 14px;
+                min-height: 40px;
+                min-width: 80px;
+            }
+            
+            .pagination {
+                gap: 6px;
+                margin: 24px 0;
+                padding: 0 10px;
+            }
+            
+            .pagination a, .pagination span {
+                padding: 10px 12px;
+                min-width: 40px;
+                min-height: 40px;
+                font-size: 14px;
+                border-radius: 10px;
+            }
+            
+            .modal {
+                padding: 16px;
+                align-items: flex-end;
+            }
+            
+            .modal-content {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                max-height: 85vh;
+                margin: 0;
+                animation: slideInUpMobile 0.3s ease-out;
             }
             
             .modal-buttons {
                 flex-direction: column-reverse;
                 align-items: stretch;
+                gap: 12px;
             }
-        }
-    </style>
-</head>
-<body>
-    <?php if (!$isLoggedIn): ?>
-        <!-- Login Modal -->
-        <div class="modal show">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>🐐 Admin Login</h2>
-                </div>
-                <form method="POST">
-                    <div class="form-group">
-                        <label for="username">Username:</label>
-                        <input type="text" id="username" name="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password:</label>
-                        <input type="password" id="password" name="password" required>
-                    </div>
-                    <button type="submit" name="login" class="btn success" style="width: 100%;">Login</button>
-                    <?php if (isset($loginError)): ?>
-                        <div class="login-error"><?php echo htmlspecialchars($loginError); ?></div>
-                    <?php endif; ?>
-                </form>
-            </div>
-        </div>
-    <?php else: ?>
-        <div class="container">
-            <div class="header">
-                <div class="header-content">
-                    <h1>🐐 Random Goat Admin</h1>
-                    <div class="stats">
-                        <?php if ($search): ?>
-                            Search: "<?php echo htmlspecialchars($search); ?>" - 
-                            <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
-                        <?php else: ?>
-                            Total Goats: <?php echo count($allGoatIds); ?> |
-                        <?php endif; ?>
-                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
-                    </div>
-                </div>
-                <a href="?logout=1" class="logout-btn">Logout</a>
-            </div>
             
-            <?php if ($message): ?>
-                <div class="message <?php echo $messageType; ?>">
-                    <?php echo htmlspecialchars($message); ?>
-                </div>
-            <?php endif; ?>
+            .modal-buttons .btn,
+            .modal-buttons .btn-secondary {
+                width: 100%;
+            }
             
-            <div class="controls">
-                <div class="controls-grid">
-                    <div class="control-section">
-                        <h3>Add Goat</h3>
-                        <form method="POST">
-                            <input type="hidden" name="action" value="add">
-                            <div class="form-content">
-                                <div class="form-group">
-                                    <label for="giphy_url">Giphy URL:</label>
-                                    <input type="url" id="giphy_url" name="giphy_url" 
-                                           placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
-                                </div>
-                            </div>
-                            <div class="form-buttons">
-                                <button type="submit" class="btn success">Add Goat</button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <div class="control-section">
-                        <h3>Find Goat</h3>
-                        <form method="GET">
-                            <div class="form-content">
-                                <div class="form-group">
-                                    <label for="search">Search by Goat ID:</label>
-                                    <input type="text" id="search" name="search" 
-                                           placeholder="Enter part of goat ID..." 
-                                           value="<?php echo htmlspecialchars($search); ?>">
-                                </div>
-                            </div>
-                            <div class="form-buttons">
-                                <?php if ($search): ?>
-                                    <a href="?" class="btn btn-secondary">Clear</a>
-                                <?php endif; ?>
-                                <button type="submit" class="btn">🔍 Search</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
+            .message {
+                margin: 0 -10px 16px -10px;
+                border-radius: 0 0 12px 12px;
+                animation: slideInDown 0.3s ease-out;
+            }
             
-            <?php if (empty($currentGoats)): ?>
-                <div class="empty-state">
-                    <?php if ($search): ?>
-                        <h3>No goats found</h3>
-                        <p>No goats match your search for "<?php echo htmlspecialchars($search); ?>"</p>
-                        <p><a href="?" style="color: var(--accent-primary);">Clear search</a> to see all goats</p>
-                    <?php else: ?>
-                        <h3>No goats found</h3>
-                        <p>Add some goats using the form above!</p>
-                    <?php endif; ?>
-                </div>
-            <?php else: ?>
-                <div class="gallery">
-                    <?php foreach ($currentGoats as $goatId): ?>
-                        <div class="goat-item">
-                            <img src="https://media.giphy.com/media/<?php echo htmlspecialchars($goatId); ?>/giphy.gif" 
-                                 alt="Goat GIF" class="goat-gif" loading="lazy">
-                            <div class="goat-info">
-                                <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
-                                <div class="goat-actions">
-                                    <div class="goat-links">
-                                        <a href="https://randomgoat.com?id=<?php echo htmlspecialchars($goatId); ?>" 
-                                           target="_blank" 
-                                           class="goat-link randomgoat tooltip" 
-                                           data-tooltip="View on Random Goat">🐐</a>
-                                    </div>
-                                    <button type="button" class="btn danger" 
-                                            onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
-                                        Delete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-                
-                <?php if ($totalPages > 1): ?>
-                    <div class="pagination">
-                        <?php 
-                        $searchParam = $search ? '&search=' . urlencode($search) : '';
-                        ?>
-                        <?php if ($page > 1): ?>
-                            <a href="?page=1<?php echo $searchParam; ?>">First</a>
-                            <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Previous</a>
-                        <?php endif; ?>
-                        
-                        <?php
-                        $start = max(1, $page - 2);
-                        $end = min($totalPages, $page + 2);
-                        
-                        for ($i = $start; $i <= $end; $i++):
-                        ?>
-                            <?php if ($i == $page): ?>
-                                <span class="current"><?php echo $i; ?></span>
-                            <?php else: ?>
-                                <a href="?page=<?php echo $i; ?><?php echo $searchParam; ?>"><?php echo $i; ?></a>
-                            <?php endif; ?>
-                        <?php endfor; ?>
-                        
-                        <?php if ($page < $totalPages): ?>
-                            <a href="?page=<?php echo $page + 1; ?><?php echo $searchParam; ?>">Next</a>
-                            <a href="?page=<?php echo $totalPages; ?><?php echo $searchParam; ?>">Last</a>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-            <?php endif; ?>
-        </div>
-        
-        <!-- Delete Confirmation Modal -->
-        <div id="deleteModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Delete Goat</h2>
-                    <p>Are you sure you want to delete this goat? This action cannot be undone.</p>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
-                    <button type="button" class="btn danger" onclick="confirmDelete()">Delete</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Hidden form for deletion -->
-        <form id="deleteForm" method="POST" style="display: none;">
-            <input type="hidden" name="action" value="delete">
-            <input type="hidden" name="goat_id" id="deleteGoatId">
-        </form>
-    <?php endif; ?>
-    
-    <script>
-        let goatToDelete = '';
-        
-        function showDeleteModal(goatId) {
-            goatToDelete = goatId;
-            document.getElementById('deleteModal').classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-        
-        function hideDeleteModal() {
-            document.getElementById('deleteModal').classList.remove('show');
-            document.body.style.overflow = '';
-            goatToDelete = '';
-        }
-        
-        function confirmDelete() {
-            if (goatToDelete) {
-                document.getElementById('deleteGoatId').value = goatToDelete;
-                document.getElementById('deleteForm').submit();
+            .empty-state {
+                padding: 60px 20px;
+            }
+            
+            .empty-state h3 {
+                font-size: 1.3rem;
+            }
+            
+            /* Hide tooltips on mobile */
+            .tooltip::before,
+            .tooltip::after {
+                display: none;
+            }
+            
+            /* Better touch targets */
+            .goat-item {
+                cursor: pointer;
+                -webkit-tap-highlight-color: rgba(91, 33, 182, 0.1);
+            }
+            
+            /* Smooth scrolling for mobile */
+            html {
+                scroll-behavior: smooth;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Pull-to-refresh styling */
+            body {
+                overscroll-behavior-y: contain;
             }
         }
         
-        // Close modal when clicking outside
-        document.getElementById('deleteModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                hideDeleteModal();
+        @keyframes slideInUpMobile {
+            from { 
+                opacity: 0;
+                transform: translateY(100%);
             }
-        });
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
         
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hideDeleteModal();
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .container {
+                padding: 8px;
             }
-        });
-    </script>
-</body>
-</html>
+            
+            .header {
+                padding: 12px;
+                flex-direction: column;
+                gap: 12px;
+                text-align: center;
+            }
+            
+            .header-content h1 {
+                font-size: 1.3rem;
+            }
+            
+            .controls {
+                padding: 12px;
+            }
+            
+            .control-section {
+                padding: 12px;
+            }
+            
+            .goat-gif {
+                height: 200px;
+            }
+            
+            .pagination a, .pagination span {
+                padding: 8px 10px;
+                min-width: 36px;
+                min-height: 36px;
+                font-size: 13px;
+            }
+            
+            /* Stack pagination on very small screens */
+            .pagination {
+                justify-content: center;
+                max-width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                padding: 0 20px;
+            }
+        }
+        
+        /* High DPI displays */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+            .goat-gif {
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+            }
+        }
+        
+        /* Dark mode support for Safari */
+        @media (prefers-color-scheme: dark) {
+            .header {
+                background: rgba(26, 26, 26, 0.95);
+            }
+        }
+        
+        /* Reduced motion support */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Focus styles for keyboard navigation */
+        .btn:focus-visible,
+        .btn-secondary:focus-visible,
+        .goat-link:focus-visible {
+            outline: 3px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+        
+        input:focus-visible {
+            outline: 3px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
