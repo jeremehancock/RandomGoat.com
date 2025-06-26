@@ -581,11 +581,125 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             box-shadow: 0 8px 25px var(--shadow);
         }
 
-        .goat-gif {
+        /* Enhanced image container for lazy loading */
+        .goat-image-container {
+            position: relative;
             width: 100%;
             height: 220px;
-            object-fit: cover;
             border-radius: 12px 12px 0 0;
+            overflow: hidden;
+            background: var(--bg-tertiary);
+        }
+
+        .goat-gif {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+            opacity: 0;
+        }
+
+        .goat-gif.loaded {
+            opacity: 1;
+        }
+
+        .goat-gif.error {
+            opacity: 0.5;
+            filter: grayscale(100%);
+        }
+
+        /* Loading placeholder */
+        .image-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 24px;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-placeholder.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Error placeholder */
+        .image-error {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-tertiary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .image-error.visible {
+            opacity: 1;
+        }
+
+        .image-error-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        /* Retry button */
+        .retry-btn {
+            background: var(--accent-primary);
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .retry-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Loading shimmer animation */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Progress bar for loading */
+        .loading-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--accent-primary);
+            transition: width 0.3s ease;
+            border-radius: 0 3px 0 0;
         }
 
         .goat-info {
@@ -1021,7 +1135,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
-            .goat-gif {
+            .goat-image-container {
                 height: 250px;
                 border-radius: 16px 16px 0 0;
             }
@@ -1234,7 +1348,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 gap: 12px;
             }
 
-            .goat-gif {
+            .goat-image-container {
                 height: 220px;
             }
 
@@ -1304,7 +1418,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 gap: 16px;
             }
 
-            .goat-gif {
+            .goat-image-container {
                 height: 200px;
             }
 
@@ -1432,8 +1546,27 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 <div class="gallery">
                     <?php foreach ($currentGoats as $goatId): ?>
                         <div class="goat-item">
-                            <img src="../goats/<?php echo htmlspecialchars($goatId); ?>.gif" alt="Goat GIF" class="goat-gif"
-                                loading="lazy">
+                            <div class="goat-image-container">
+                                <!-- Loading placeholder -->
+                                <div class="image-placeholder">
+                                    🐐
+                                </div>
+
+                                <!-- Error state -->
+                                <div class="image-error">
+                                    <div class="image-error-icon">⚠️</div>
+                                    <div>Failed to load</div>
+                                    <button class="retry-btn" onclick="retryImage(this)">Retry</button>
+                                </div>
+
+                                <!-- Loading progress bar -->
+                                <div class="loading-progress"></div>
+
+                                <!-- Actual image -->
+                                <img data-src="../goats/<?php echo htmlspecialchars($goatId); ?>.gif" alt="Goat GIF"
+                                    class="goat-gif lazy-image" loading="lazy"
+                                    data-goat-id="<?php echo htmlspecialchars($goatId); ?>">
+                            </div>
                             <div class="goat-info">
                                 <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
                                 <div class="goat-actions">
@@ -1542,6 +1675,167 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
     <script>
         let goatToDelete = '';
 
+        // Enhanced Lazy Loading with Intersection Observer
+        class LazyImageLoader {
+            constructor() {
+                this.imageObserver = null;
+                this.loadedImages = new Set();
+                this.failedImages = new Set();
+
+                this.init();
+            }
+
+            init() {
+                // Check if Intersection Observer is supported
+                if ('IntersectionObserver' in window) {
+                    this.imageObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                this.loadImage(entry.target);
+                                observer.unobserve(entry.target);
+                            }
+                        });
+                    }, {
+                        // Start loading when image is 100px away from viewport
+                        rootMargin: '100px 0px',
+                        threshold: 0.01
+                    });
+
+                    // Observe all lazy images
+                    this.observeImages();
+                } else {
+                    // Fallback for older browsers
+                    this.loadAllImages();
+                }
+            }
+
+            observeImages() {
+                const lazyImages = document.querySelectorAll('.lazy-image:not(.loaded)');
+                lazyImages.forEach(img => {
+                    this.imageObserver.observe(img);
+                });
+            }
+
+            loadImage(img) {
+                const container = img.closest('.goat-image-container');
+                const placeholder = container.querySelector('.image-placeholder');
+                const errorElement = container.querySelector('.image-error');
+                const progressBar = container.querySelector('.loading-progress');
+                const goatId = img.dataset.goatId;
+
+                // Skip if already loaded or failed
+                if (this.loadedImages.has(goatId) || this.failedImages.has(goatId)) {
+                    return;
+                }
+
+                // Show progress bar
+                progressBar.style.width = '10%';
+
+                // Create a new image to test loading
+                const testImg = new Image();
+
+                testImg.onload = () => {
+                    // Image loaded successfully
+                    progressBar.style.width = '100%';
+
+                    setTimeout(() => {
+                        img.src = img.dataset.src;
+                        img.classList.add('loaded');
+                        placeholder.classList.add('hidden');
+                        errorElement.classList.remove('visible');
+                        progressBar.style.width = '0%';
+
+                        this.loadedImages.add(goatId);
+                    }, 200);
+                };
+
+                testImg.onerror = () => {
+                    // Image failed to load
+                    progressBar.style.width = '0%';
+                    placeholder.classList.add('hidden');
+                    errorElement.classList.add('visible');
+                    img.classList.add('error');
+
+                    this.failedImages.add(goatId);
+                };
+
+                // Simulate progress
+                let progress = 10;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 20;
+                    if (progress >= 90) {
+                        progress = 90;
+                        clearInterval(progressInterval);
+                    }
+                    progressBar.style.width = progress + '%';
+                }, 100);
+
+                // Start loading
+                testImg.src = img.dataset.src;
+            }
+
+            retryImage(goatId) {
+                // Remove from failed set and retry
+                this.failedImages.delete(goatId);
+
+                const img = document.querySelector(`[data-goat-id="${goatId}"]`);
+                if (img) {
+                    const container = img.closest('.goat-image-container');
+                    const placeholder = container.querySelector('.image-placeholder');
+                    const errorElement = container.querySelector('.image-error');
+
+                    // Reset states
+                    img.classList.remove('error', 'loaded');
+                    placeholder.classList.remove('hidden');
+                    errorElement.classList.remove('visible');
+
+                    // Retry loading
+                    this.loadImage(img);
+                }
+            }
+
+            loadAllImages() {
+                // Fallback for browsers without Intersection Observer
+                const lazyImages = document.querySelectorAll('.lazy-image:not(.loaded)');
+                lazyImages.forEach(img => {
+                    this.loadImage(img);
+                });
+            }
+        }
+
+        // Initialize lazy loading when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            window.lazyLoader = new LazyImageLoader();
+        });
+
+        // Global retry function for error buttons
+        function retryImage(button) {
+            const container = button.closest('.goat-image-container');
+            const img = container.querySelector('.lazy-image');
+            const goatId = img.dataset.goatId;
+
+            if (window.lazyLoader) {
+                window.lazyLoader.retryImage(goatId);
+            }
+        }
+
+        // Performance optimization: Preload next page images when user reaches bottom
+        function preloadNextPageImages() {
+            const nextPageLink = document.querySelector('.pagination a[href*="page=' + (<?php echo $page; ?> + 1) + '"]');
+            if (nextPageLink && 'IntersectionObserver' in window) {
+                // Could implement next page preloading here
+                console.log('Could preload next page images');
+            }
+        }
+
+        // Check if user is near bottom of page for preloading
+        window.addEventListener('scroll', () => {
+            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
+                preloadNextPageImages();
+            }
+        });
+
+        // Existing modal and form functions
         function showDeleteModal(goatId) {
             goatToDelete = goatId;
             document.getElementById('deleteModal').classList.add('show');
