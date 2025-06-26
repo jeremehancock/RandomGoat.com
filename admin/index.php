@@ -473,13 +473,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             justify-self: center;
             background: var(--bg-secondary);
             border-radius: 12px;
-            overflow: hidden;
+            overflow: visible;
             box-shadow: 0 4px 6px var(--shadow);
             border: 1px solid var(--border);
             transition: transform 0.3s, box-shadow 0.3s;
             display: flex;
             flex-direction: column;
             height: 100%;
+            position: relative;
         }
         
         .goat-item:hover {
@@ -491,6 +492,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             width: 100%;
             height: 220px;
             object-fit: cover;
+            border-radius: 12px 12px 0 0;
         }
         
         .goat-info {
@@ -553,6 +555,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         /* Custom Tooltip Styles */
         .tooltip {
             position: relative;
+            z-index: 1001;
         }
         
         .tooltip::before {
@@ -573,7 +576,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             opacity: 0;
             visibility: hidden;
             transition: all 0.2s ease;
-            z-index: 1000;
+            z-index: 1002;
             pointer-events: none;
         }
         
@@ -591,7 +594,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             opacity: 0;
             visibility: hidden;
             transition: all 0.2s ease;
-            z-index: 1000;
+            z-index: 1002;
             pointer-events: none;
         }
         
