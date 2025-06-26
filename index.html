@@ -66,13 +66,12 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             text-align: center;
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transition: opacity 1s ease;
             z-index: 1000;
         }
 
         .splash-screen.hide {
             opacity: 0;
-            transform: scale(0.95);
             pointer-events: none;
         }
 
@@ -115,11 +114,6 @@
             width: 100vw;
             height: 100vh;
             background: #000;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-        }
-
-        .gif-container.visible {
             opacity: 1;
         }
 
@@ -740,6 +734,7 @@
                 this.targetPreloadCount = 5;
                 this.isPreloading = false;
                 this.forcedSeason = null; // New property for URL season override
+                this.firstGifReady = false; // Track if first gif is loaded
                 
                 this.elements = {
                     splashScreen: document.getElementById('splashScreen'),
@@ -841,24 +836,62 @@
                 // Load gif IDs
                 await this.loadGifIds();
                 
-                // Start the app
+                // Load first gif before hiding splash screen
+                await this.prepareFirstGif();
+                
+                // Start the transition
                 setTimeout(() => {
-                    this.hideSplashScreen();
-                    setTimeout(() => {
-                        this.showGifContainer();
-                        this.setupSeasonalMascot();
-                        
-                        if (this.specificGifId) {
-                            this.showSpecificGif();
-                        } else {
-                            this.nextGif();
-                        }
-                        
-                        // Start aggressive preloading
-                        this.startPreloadMaintenance();
-                        
-                    }, 600);
+                    this.startSmoothTransition();
                 }, 1500);
+            }
+
+            async prepareFirstGif() {
+                try {
+                    let gifId;
+                    
+                    if (this.specificGifId) {
+                        gifId = this.specificGifId;
+                    } else {
+                        gifId = this.getRandomGifId();
+                    }
+                    
+                    if (!gifId) throw new Error('No gif ID available');
+                    
+                    // Load the first gif to layer1
+                    await this.loadGifToLayer(gifId, this.elements.layer1);
+                    this.firstGifReady = true;
+                    
+                    console.log('First gif preloaded successfully');
+                } catch (error) {
+                    console.error('Error preparing first gif:', error);
+                    // Continue anyway, fallback will handle it
+                    this.firstGifReady = false;
+                }
+            }
+
+            async startSmoothTransition() {
+                // Setup seasonal mascot
+                this.setupSeasonalMascot();
+                
+                if (this.firstGifReady) {
+                    // Show the first gif immediately
+                    this.elements.layer1.classList.add('active');
+                    this.startTimer();
+                }
+                
+                // Now hide the splash screen - the gif is already visible underneath
+                this.hideSplashScreen();
+                
+                // Start background systems after transition
+                setTimeout(() => {
+                    if (!this.firstGifReady) {
+                        // Fallback: load first gif if preload failed
+                        this.nextGif();
+                    }
+                    
+                    // Start aggressive preloading
+                    this.startPreloadMaintenance();
+                }, 1000);
             }
 
             checkIfEmbedded() {
