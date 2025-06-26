@@ -173,15 +173,15 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             --text-primary: #ffffff;
             --text-secondary: #b3b3b3;
             --text-muted: #6b7280;
-            --accent-primary: #4f46e5;
-            --accent-hover: #4338ca;
+            --accent-primary: #5b21b6;
+            --accent-hover: #4c1d95;
             --accent-secondary: #6366f1;
-            --success: #10b981;
-            --success-hover: #059669;
-            --error: #f87171;
-            --error-hover: #ef4444;
-            --warning: #fbbf24;
-            --warning-hover: #f59e0b;
+            --success: #059669;
+            --success-hover: #047857;
+            --error: #dc2626;
+            --error-hover: #b91c1c;
+            --warning: #d97706;
+            --warning-hover: #b45309;
             --border: #374151;
             --shadow: rgba(0, 0, 0, 0.3);
         }
@@ -233,23 +233,25 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         .logout-btn {
             background: var(--error);
-            color: white;
-            padding: 10px 18px;
+            color: #ffffff;
+            padding: 12px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             text-decoration: none;
             display: inline-block;
             transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(248, 113, 113, 0.3);
+            box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         
         .logout-btn:hover {
             background: var(--error-hover);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(248, 113, 113, 0.4);
+            box-shadow: 0 5px 10px rgba(220, 38, 38, 0.5);
         }
         
         .message {
@@ -261,20 +263,20 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         }
         
         .message.success {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success);
+            background: rgba(5, 150, 105, 0.15);
+            color: #10b981;
             border-color: var(--success);
         }
         
         .message.error {
-            background: rgba(248, 113, 113, 0.1);
-            color: var(--error);
+            background: rgba(220, 38, 38, 0.15);
+            color: #f87171;
             border-color: var(--error);
         }
         
         .message.warning {
-            background: rgba(251, 191, 36, 0.1);
-            color: var(--warning);
+            background: rgba(217, 119, 6, 0.15);
+            color: #fbbf24;
             border-color: var(--warning);
         }
         
@@ -353,76 +355,84 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
             outline: none;
             border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
         }
         
         .btn {
             background: var(--accent-primary);
-            color: white;
+            color: #ffffff;
             padding: 12px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             transition: all 0.2s ease;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             justify-content: center;
             text-decoration: none;
-            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
             min-width: 100px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
         }
         
         .btn:hover {
             background: var(--accent-hover);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.4);
+            box-shadow: 0 5px 10px rgba(91, 33, 182, 0.5);
         }
         
         .btn.success {
             background: var(--success);
-            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 3px 6px rgba(5, 150, 105, 0.4);
+            color: #ffffff;
         }
         
         .btn.success:hover {
             background: var(--success-hover);
-            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 5px 10px rgba(5, 150, 105, 0.5);
         }
         
         .btn.danger {
             background: var(--error);
-            box-shadow: 0 2px 4px rgba(248, 113, 113, 0.3);
+            box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
+            color: #ffffff;
         }
         
         .btn.danger:hover {
             background: var(--error-hover);
-            box-shadow: 0 4px 8px rgba(248, 113, 113, 0.4);
+            box-shadow: 0 5px 10px rgba(220, 38, 38, 0.5);
         }
         
         .btn.warning {
             background: var(--warning);
-            color: #1f2937;
-            box-shadow: 0 2px 4px rgba(251, 191, 36, 0.3);
+            color: #ffffff;
+            box-shadow: 0 3px 6px rgba(217, 119, 6, 0.4);
         }
         
         .btn.warning:hover {
             background: var(--warning-hover);
-            box-shadow: 0 4px 8px rgba(251, 191, 36, 0.4);
+            box-shadow: 0 5px 10px rgba(217, 119, 6, 0.5);
         }
         
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
             border: 2px solid var(--border);
-            box-shadow: 0 2px 4px rgba(55, 65, 81, 0.3);
+            box-shadow: 0 3px 6px rgba(55, 65, 81, 0.3);
+            font-weight: 600;
         }
         
         .btn-secondary:hover {
             background: var(--border);
             border-color: var(--text-secondary);
-            box-shadow: 0 4px 8px rgba(55, 65, 81, 0.4);
+            box-shadow: 0 5px 10px rgba(55, 65, 81, 0.4);
+            color: var(--text-primary);
         }
         
         .gallery {
@@ -499,7 +509,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             border-radius: 8px;
             transition: all 0.3s;
             background: var(--bg-secondary);
-            font-weight: 500;
+            font-weight: 600;
             box-shadow: 0 2px 4px rgba(55, 65, 81, 0.2);
         }
         
@@ -507,13 +517,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             background: var(--accent-primary);
             border-color: var(--accent-primary);
             transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 4px 8px rgba(91, 33, 182, 0.4);
+            color: #ffffff;
         }
         
         .pagination .current {
             background: var(--accent-primary);
             border-color: var(--accent-primary);
-            box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+            box-shadow: 0 2px 4px rgba(91, 33, 182, 0.3);
+            color: #ffffff;
+            font-weight: 700;
         }
         
         .empty-state {
@@ -715,7 +728,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                 <div class="form-group">
                                     <label for="search">Search by Goat ID:</label>
                                     <input type="text" id="search" name="search" 
-                                           placeholder="Enter part of goat ID..." 
+                                           placeholder="Enter Giphy ID..." 
                                            value="<?php echo htmlspecialchars($search); ?>">
                                 </div>
                             </div>
