@@ -733,42 +733,396 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 transform: translateY(0);
             }
         }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .gallery {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 20px;
-            }
-            
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            
-            .controls-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
-            }
-            
-            .modal-content {
-                margin: 20px;
-                padding: 24px;
-            }
-            
-            .form-buttons {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .modal-buttons {
-                flex-direction: column-reverse;
-                align-items: stretch;
-            }
-        }
+
+		@media (max-width: 768px) {
+			body {
+				background: var(--bg-primary);
+				padding: 0;
+				margin: 0;
+			}
+			
+			.container {
+				padding: 0;
+				max-width: 100%;
+				margin: 0;
+			}
+			
+			/* App-like header */
+			.header {
+				background: var(--bg-secondary);
+				margin: 0;
+				border-radius: 0 0 20px 20px;
+				padding: 20px 20px 25px 20px;
+				box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+				position: sticky;
+				top: 0;
+				z-index: 100;
+				backdrop-filter: blur(10px);
+				border: none;
+				border-bottom: 1px solid var(--border);
+			}
+			
+			.header-content h1 {
+				font-size: 1.75rem;
+				margin-bottom: 8px;
+				text-align: center;
+			}
+			
+			.stats {
+				text-align: center;
+				font-size: 13px;
+				margin-bottom: 15px;
+			}
+			
+			.logout-btn {
+				align-self: center;
+				width: 100%;
+				max-width: 200px;
+				margin: 0 auto;
+				padding: 14px 20px;
+				font-size: 15px;
+				border-radius: 12px;
+			}
+			
+			/* App-like controls section */
+			.controls {
+				margin: 20px 16px;
+				border-radius: 16px;
+				padding: 20px;
+				box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+			}
+			
+			.controls-grid {
+				grid-template-columns: 1fr;
+				gap: 20px;
+			}
+			
+			.control-section {
+				border-radius: 12px;
+				padding: 20px;
+				min-height: auto;
+			}
+			
+			.control-section h3 {
+				font-size: 1.1rem;
+				margin-bottom: 16px;
+				text-align: center;
+			}
+			
+			/* Mobile-optimized forms */
+			.form-group {
+				margin-bottom: 16px;
+			}
+			
+			input[type="url"], input[type="text"], input[type="password"] {
+				padding: 16px;
+				font-size: 16px; /* Prevents zoom on iOS */
+				border-radius: 12px;
+				border: 2px solid var(--border);
+				background: var(--bg-primary);
+			}
+			
+			input[type="url"]:focus, input[type="text"]:focus, input[type="password"]:focus {
+				border-color: var(--accent-primary);
+				box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.1);
+			}
+			
+			/* App-like buttons */
+			.btn, .btn-secondary {
+				padding: 16px 24px;
+				font-size: 15px;
+				font-weight: 600;
+				border-radius: 12px;
+				min-height: 52px;
+				width: 100%;
+				justify-content: center;
+				transition: all 0.2s ease;
+				touch-action: manipulation;
+			}
+			
+			.form-buttons {
+				flex-direction: row;
+				gap: 12px;
+				margin-top: 20px;
+				padding-top: 16px;
+			}
+			
+			.form-buttons .btn {
+				flex: 1;
+			}
+			
+			/* Mobile gallery - card-like layout */
+			.gallery {
+				padding: 0 16px;
+				grid-template-columns: 1fr;
+				gap: 16px;
+				margin-bottom: 20px;
+			}
+			
+			.goat-item {
+				max-width: 100%;
+				border-radius: 16px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+				overflow: hidden;
+				background: var(--bg-secondary);
+				border: 1px solid var(--border);
+			}
+			
+			.goat-item:hover {
+				transform: none; /* Disable hover effects on mobile */
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+			}
+			
+			.goat-gif {
+				height: 250px;
+				border-radius: 16px 16px 0 0;
+			}
+			
+			.goat-info {
+				padding: 16px;
+			}
+			
+			.goat-id {
+				font-size: 11px;
+				padding: 8px 12px;
+				border-radius: 8px;
+				margin-bottom: 12px;
+				background: var(--bg-tertiary);
+			}
+			
+			.goat-actions {
+				align-items: center;
+				gap: 12px;
+			}
+			
+			.goat-links {
+				flex: 1;
+			}
+			
+			.goat-link {
+				width: 44px;
+				height: 44px;
+				border-radius: 12px;
+				font-size: 18px;
+				touch-action: manipulation;
+			}
+			
+			.goat-actions .btn {
+				width: auto;
+				min-width: 80px;
+				padding: 12px 16px;
+				font-size: 14px;
+				min-height: 44px;
+			}
+			
+			/* Mobile pagination */
+			.pagination {
+				padding: 20px 16px;
+				margin: 0;
+				gap: 8px;
+				overflow-x: auto;
+				justify-content: flex-start;
+				-webkit-overflow-scrolling: touch;
+			}
+			
+			.pagination a, .pagination span {
+				padding: 12px 16px;
+				min-width: 48px;
+				min-height: 48px;
+				border-radius: 12px;
+				font-size: 14px;
+				flex-shrink: 0;
+				touch-action: manipulation;
+			}
+			
+			/* Mobile modal improvements */
+			.modal-content {
+				margin: 20px 16px;
+				padding: 24px;
+				border-radius: 20px;
+				max-width: none;
+				width: calc(100% - 32px);
+				box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+			}
+			
+			.modal-header h2 {
+				font-size: 1.5rem;
+				margin-bottom: 12px;
+			}
+			
+			.modal-buttons {
+				flex-direction: row;
+				gap: 12px;
+				margin-top: 24px;
+			}
+			
+			.modal-buttons .btn {
+				flex: 1;
+				margin: 0;
+			}
+			
+			/* Message styling for mobile */
+			.message {
+				margin: 16px;
+				padding: 16px;
+				border-radius: 12px;
+				font-size: 14px;
+			}
+			
+			/* Empty state mobile */
+			.empty-state {
+				padding: 60px 20px;
+				margin: 20px 16px;
+				background: var(--bg-secondary);
+				border-radius: 16px;
+				border: 1px solid var(--border);
+			}
+			
+			.empty-state h3 {
+				font-size: 1.25rem;
+				margin-bottom: 12px;
+			}
+			
+			.empty-state p {
+				font-size: 14px;
+				line-height: 1.5;
+				margin-bottom: 8px;
+			}
+			
+			/* Touch-friendly tooltips - disable on mobile */
+			.tooltip::before,
+			.tooltip::after {
+				display: none;
+			}
+			
+			/* Login form mobile optimization */
+			.modal.show .modal-content form .btn {
+				width: 100%;
+				margin-top: 8px;
+			}
+			
+			.login-error {
+				font-size: 13px;
+				margin-top: 16px;
+				padding: 12px;
+				background: rgba(220, 38, 38, 0.1);
+				border-radius: 8px;
+				border: 1px solid var(--error);
+			}
+			
+			/* Safe area adjustments for notched devices */
+			@supports(padding: max(0px)) {
+				.header {
+				    padding-top: max(20px, env(safe-area-inset-top));
+				}
+				
+				body {
+				    padding-bottom: max(0px, env(safe-area-inset-bottom));
+				}
+			}
+			
+			/* Dark mode adjustments for mobile */
+			@media (prefers-color-scheme: dark) {
+				.header {
+				    backdrop-filter: blur(20px);
+				    background: rgba(26, 26, 26, 0.95);
+				}
+			}
+			
+			/* Improved scrolling on mobile */
+			.container {
+				-webkit-overflow-scrolling: touch;
+				overflow-x: hidden;
+			}
+			
+			/* Better button feedback */
+			.btn:active, .btn-secondary:active, .goat-link:active {
+				transform: scale(0.98);
+				transition: transform 0.1s ease;
+			}
+			
+			/* Improved form field focus */
+			input:focus {
+				transform: scale(1.02);
+				transition: transform 0.2s ease;
+			}
+		}
+
+		/* Additional mobile-specific styles for very small screens */
+		@media (max-width: 480px) {
+			.header-content h1 {
+				font-size: 1.5rem;
+			}
+			
+			.controls {
+				margin: 16px 12px;
+				padding: 16px;
+			}
+			
+			.control-section {
+				padding: 16px;
+			}
+			
+			.gallery {
+				padding: 0 12px;
+				gap: 12px;
+			}
+			
+			.goat-gif {
+				height: 220px;
+			}
+			
+			.pagination {
+				padding: 16px 12px;
+			}
+			
+			.modal-content {
+				margin: 16px 12px;
+				padding: 20px;
+				width: calc(100% - 24px);
+			}
+			
+			.message {
+				margin: 12px;
+			}
+			
+			.empty-state {
+				margin: 16px 12px;
+				padding: 40px 16px;
+			}
+		}
+
+		/* Landscape mobile optimization */
+		@media (max-width: 768px) and (orientation: landscape) {
+			.header {
+				position: relative;
+				border-radius: 0;
+				padding: 16px 20px;
+			}
+			
+			.header-content h1 {
+				font-size: 1.5rem;
+				margin-bottom: 4px;
+			}
+			
+			.stats {
+				margin-bottom: 8px;
+			}
+			
+			.logout-btn {
+				padding: 12px 20px;
+				max-width: 150px;
+			}
+			
+			.gallery {
+				grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+				gap: 16px;
+			}
+			
+			.goat-gif {
+				height: 200px;
+			}
+		}
     </style>
 </head>
 <body>
