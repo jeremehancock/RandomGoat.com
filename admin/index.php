@@ -4,6 +4,7 @@ session_start();
 
 // Configuration
 $dataFile = '../data/goats.txt';
+$goatsDir = '../goats/';
 $perPage = 12;
 $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -42,6 +43,11 @@ if (!is_dir($dataDir)) {
     mkdir($dataDir, 0755, true);
 }
 
+// Ensure goats directory exists
+if (!is_dir($goatsDir)) {
+    mkdir($goatsDir, 0755, true);
+}
+
 // Ensure goats.txt exists
 if (!file_exists($dataFile)) {
     file_put_contents($dataFile, '');
@@ -68,6 +74,51 @@ function extractGiphyId($url)
     }
 }
 
+// Function to download GIF from Giphy
+function downloadGifFromGiphy($giphyId, $destinationPath)
+{
+    $giphyUrl = "https://media.giphy.com/media/{$giphyId}/giphy.gif";
+
+    // Initialize cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $giphyUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+
+    $gifData = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    // Check for cURL errors
+    if ($error) {
+        return ['success' => false, 'error' => "Network error: {$error}"];
+    }
+
+    // Check HTTP response code
+    if ($httpCode !== 200) {
+        return ['success' => false, 'error' => "HTTP error: {$httpCode}. GIF may not exist on Giphy."];
+    }
+
+    // Verify we got actual GIF data
+    if (empty($gifData) || substr($gifData, 0, 3) !== 'GIF') {
+        return ['success' => false, 'error' => "Invalid GIF data received from Giphy."];
+    }
+
+    // Try to save the file
+    $result = file_put_contents($destinationPath, $gifData);
+
+    if ($result === false) {
+        return ['success' => false, 'error' => "Failed to save GIF to local directory."];
+    }
+
+    return ['success' => true, 'size' => $result];
+}
+
 // Function to read goat IDs
 function readGoatIds($file)
 {
@@ -86,6 +137,16 @@ function saveGoatIds($file, $ids)
     return file_put_contents($file, $content) !== false;
 }
 
+// Function to delete goat files
+function deleteGoatFiles($goatId, $goatsDir)
+{
+    $gifPath = $goatsDir . $goatId . '.gif';
+    if (file_exists($gifPath)) {
+        return unlink($gifPath);
+    }
+    return true; // If file doesn't exist, consider it successfully "deleted"
+}
+
 // Handle form submissions (only if logged in)
 $message = '';
 $messageType = '';
@@ -100,12 +161,27 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($url) {
                     $id = extractGiphyId($url);
                     if ($id && !in_array($id, $goatIds)) {
-                        $goatIds[] = $id;
-                        if (saveGoatIds($dataFile, $goatIds)) {
-                            $message = "Goat added successfully! ID: $id";
-                            $messageType = 'success';
+                        // Try to download the GIF first
+                        $gifPath = $goatsDir . $id . '.gif';
+                        $downloadResult = downloadGifFromGiphy($id, $gifPath);
+
+                        if ($downloadResult['success']) {
+                            // If download successful, add to goats.txt
+                            $goatIds[] = $id;
+                            if (saveGoatIds($dataFile, $goatIds)) {
+                                $sizeKB = round($downloadResult['size'] / 1024, 1);
+                                $message = "Goat added successfully! ID: {$id} (Size: {$sizeKB} KB)";
+                                $messageType = 'success';
+                            } else {
+                                // If saving to file failed, clean up the downloaded GIF
+                                if (file_exists($gifPath)) {
+                                    unlink($gifPath);
+                                }
+                                $message = "Error saving goat to database file.";
+                                $messageType = 'error';
+                            }
                         } else {
-                            $message = "Error saving goat to file.";
+                            $message = "Failed to download GIF: " . $downloadResult['error'];
                             $messageType = 'error';
                         }
                     } elseif (in_array($id, $goatIds)) {
@@ -124,9 +200,16 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'delete':
                 $idToDelete = $_POST['goat_id'] ?? '';
                 if ($idToDelete && in_array($idToDelete, $goatIds)) {
+                    // Remove from goats.txt
                     $goatIds = array_diff($goatIds, [$idToDelete]);
                     if (saveGoatIds($dataFile, $goatIds)) {
-                        $message = "Goat deleted successfully!";
+                        // Also delete the GIF file
+                        $deleteFileResult = deleteGoatFiles($idToDelete, $goatsDir);
+                        if ($deleteFileResult) {
+                            $message = "Goat deleted successfully! (ID and GIF file removed)";
+                        } else {
+                            $message = "Goat removed from database, but GIF file could not be deleted.";
+                        }
                         $messageType = 'success';
                     } else {
                         $message = "Error deleting goat from file.";
@@ -729,6 +812,37 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             text-align: center;
         }
 
+        /* Loading state for Add Goat button */
+        .btn.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translate(-50%, -50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) rotate(360deg);
+            }
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -1261,17 +1375,21 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 <div class="controls-grid">
                     <div class="control-section">
                         <h3>Add Goat</h3>
-                        <form method="POST">
+                        <form method="POST" id="addGoatForm">
                             <input type="hidden" name="action" value="add">
                             <div class="form-content">
                                 <div class="form-group">
                                     <label for="giphy_url">Giphy URL:</label>
                                     <input type="url" id="giphy_url" name="giphy_url"
                                         placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                                    <small
+                                        style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
+                                        📥 GIF will be downloaded and stored locally
+                                    </small>
                                 </div>
                             </div>
                             <div class="form-buttons">
-                                <button type="submit" class="btn success">Add Goat</button>
+                                <button type="submit" class="btn success" id="addGoatBtn">📥 Add & Download</button>
                             </div>
                         </form>
                     </div>
@@ -1306,6 +1424,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                     <?php else: ?>
                         <h3>No goats found</h3>
                         <p>Add some goats using the form above!</p>
+                        <p style="font-size: 13px; margin-top: 10px;">🔗 Paste a Giphy URL and the GIF will be downloaded
+                            automatically</p>
                     <?php endif; ?>
                 </div>
             <?php else: ?>
@@ -1323,7 +1443,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                     </div>
                                     <button type="button" class="btn danger"
                                         onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
-                                        Delete
+                                        🗑️ Delete
                                     </button>
                                 </div>
                             </div>
@@ -1402,11 +1522,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Delete Goat</h2>
-                    <p>Are you sure you want to delete this goat? This action cannot be undone.</p>
+                    <p>Are you sure you want to delete this goat? This will remove both the database entry and the GIF file.
+                        This action cannot be undone.</p>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
-                    <button type="button" class="btn danger" onclick="confirmDelete()">Delete</button>
+                    <button type="button" class="btn danger" onclick="confirmDelete()">🗑️ Delete</button>
                 </div>
             </div>
         </div>
@@ -1452,6 +1573,23 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             if (e.key === 'Escape') {
                 hideDeleteModal();
             }
+        });
+
+        // Add loading state to Add Goat form
+        document.getElementById('addGoatForm').addEventListener('submit', function (e) {
+            const btn = document.getElementById('addGoatBtn');
+            const originalText = btn.innerHTML;
+
+            btn.classList.add('loading');
+            btn.innerHTML = 'Downloading...';
+            btn.disabled = true;
+
+            // Reset button state if form submission fails or returns to page
+            setTimeout(function () {
+                btn.classList.remove('loading');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 30000); // Reset after 30 seconds max
         });
     </script>
 </body>
