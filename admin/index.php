@@ -929,20 +929,37 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			.pagination {
 				padding: 20px 16px;
 				margin: 0;
-				gap: 8px;
-				overflow-x: auto;
+				gap: 6px;
 				justify-content: center;
-				-webkit-overflow-scrolling: touch;
+				flex-wrap: wrap;
+				overflow-x: visible;
+				max-width: 100%;
 			}
 			
 			.pagination a, .pagination span {
-				padding: 12px 16px;
-				min-width: 48px;
-				min-height: 48px;
-				border-radius: 12px;
-				font-size: 14px;
-				flex-shrink: 0;
+				padding: 10px 12px;
+				min-width: 40px;
+				min-height: 40px;
+				border-radius: 10px;
+				font-size: 13px;
+				flex-shrink: 1;
 				touch-action: manipulation;
+				max-width: calc((100vw - 120px) / 7); /* Ensure max 7 buttons fit */
+				text-align: center;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+			
+			/* Smaller numbered page buttons for better fit */
+			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
+			.pagination span.current {
+				font-size: 12px;
+				min-width: 36px;
+				padding: 8px 10px;
 			}
 			
 			/* Mobile modal improvements */
@@ -1093,6 +1110,23 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				padding: 16px 12px;
 			}
 			
+			.pagination a, .pagination span {
+				padding: 8px 8px;
+				min-width: 32px;
+				min-height: 32px;
+				font-size: 11px;
+				gap: 4px;
+				max-width: calc((100vw - 80px) / 7); /* Tighter fit for small screens */
+			}
+			
+			/* Even smaller numbered buttons on small screens */
+			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
+			.pagination span.current {
+				font-size: 10px;
+				min-width: 28px;
+				padding: 6px 8px;
+			}
+			
 			.modal-content {
 				margin: 16px 12px;
 				padding: 20px;
@@ -1186,6 +1220,18 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			
 			.goat-gif {
 				height: 200px;
+			}
+			
+			/* Landscape pagination adjustments */
+			.pagination {
+				padding: 16px 20px;
+				gap: 8px;
+			}
+			
+			.pagination a, .pagination span {
+				padding: 8px 14px;
+				min-width: 44px;
+				max-width: calc((100vw - 160px) / 8); /* More space in landscape */
 			}
 		}
     </style>
