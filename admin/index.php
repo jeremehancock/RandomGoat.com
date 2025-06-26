@@ -433,12 +433,23 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         .btn-secondary {
             background: var(--bg-tertiary);
             color: var(--text-primary);
-            border: 2px solid var(--border);
+            border: 1px solid var(--border);
             box-shadow: 0 3px 6px rgba(55, 65, 81, 0.3);
             font-weight: 600;
             min-width: 110px;
             min-height: 44px;
             flex-shrink: 0;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-sizing: border-box;
         }
         
         .btn-secondary:hover {
@@ -502,8 +513,56 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         
         .goat-actions {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            align-items: center;
             margin-top: auto;
+        }
+        
+        .goat-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .goat-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+        }
+        
+        .goat-link.randomgoat {
+            background: var(--accent-primary);
+            color: #ffffff;
+            box-shadow: 0 2px 4px rgba(91, 33, 182, 0.3);
+        }
+        
+        .goat-link.randomgoat:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
+        }
+        
+        .goat-link.giphy {
+            background: #00ff99;
+            color: #000000;
+            font-family: 'Arial Black', Arial, sans-serif;
+            font-size: 18px;
+            font-weight: 900;
+            box-shadow: 0 2px 4px rgba(0, 255, 153, 0.3);
+        }
+        
+        .goat-link.giphy:hover {
+            background: #00e68a;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 6px rgba(0, 255, 153, 0.4);
         }
         
         .pagination {
@@ -782,6 +841,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                             <div class="goat-info">
                                 <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
                                 <div class="goat-actions">
+                                    <div class="goat-links">
+                                        <a href="https://randomgoat.com?id=<?php echo htmlspecialchars($goatId); ?>" 
+                                           target="_blank" 
+                                           class="goat-link randomgoat" 
+                                           title="View on Random Goat">🐐</a>
+                                        <a href="https://giphy.com/gifs/<?php echo htmlspecialchars($goatId); ?>" 
+                                           target="_blank" 
+                                           class="goat-link giphy" 
+                                           title="View on Giphy">G</a>
+                                    </div>
                                     <button type="button" class="btn danger" 
                                             onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
                                         Delete
