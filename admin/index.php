@@ -241,11 +241,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             font-size: 14px;
             font-weight: 700;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s ease;
             box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 110px;
+            min-height: 44px;
+            flex-shrink: 0;
         }
         
         .logout-btn:hover {
@@ -328,6 +333,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             gap: 10px;
             margin-top: auto;
             padding-top: 20px;
+            min-height: 64px;
+            align-items: flex-end;
         }
         
         .form-group {
@@ -374,11 +381,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             justify-content: center;
             text-decoration: none;
             box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
-            min-width: 100px;
+            min-width: 110px;
+            min-height: 44px;
+            width: auto;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
         
         .btn:hover {
@@ -426,6 +436,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             border: 2px solid var(--border);
             box-shadow: 0 3px 6px rgba(55, 65, 81, 0.3);
             font-weight: 600;
+            min-width: 110px;
+            min-height: 44px;
+            flex-shrink: 0;
         }
         
         .btn-secondary:hover {
@@ -511,6 +524,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             background: var(--bg-secondary);
             font-weight: 600;
             box-shadow: 0 2px 4px rgba(55, 65, 81, 0.2);
+            min-width: 44px;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         
         .pagination a:hover {
@@ -728,7 +747,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                 <div class="form-group">
                                     <label for="search">Search by Goat ID:</label>
                                     <input type="text" id="search" name="search" 
-                                           placeholder="Enter Giphy ID..." 
+                                           placeholder="Enter part of goat ID..." 
                                            value="<?php echo htmlspecialchars($search); ?>">
                                 </div>
                             </div>
