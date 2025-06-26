@@ -1,20 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Random Goat</title>
     <meta charset="UTF-8">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>" type="image/svg+xml">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐐</text></svg>"
+        type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Looking for random goat gifs? Look no further!"/>
-    <meta name="keywords" content="pointless, useless, web, websites, sites, goat, goats, gif, gifs, random, weird, odd, bizarre"/>
-    <meta property="og:title" content="Random Goat"/>
-    <meta property="og:type" content="website"/>
-    <meta property="og:description" content="Looking for random goat gifs? Look no further!"/>
-    <meta property="og:url" content="https://randomgoat.com"/>
-    <meta property="og:image" content="https://randomgoat.com/images/goat-og.png"/>
-    <meta property="og:site_name" content="randomgoat.com"/>
+    <meta name="description" content="Looking for random goat gifs? Look no further!" />
+    <meta name="keywords"
+        content="pointless, useless, web, websites, sites, goat, goats, gif, gifs, random, weird, odd, bizarre" />
+    <meta property="og:title" content="Random Goat" />
+    <meta property="og:type" content="website" />
+    <meta property="og:description" content="Looking for random goat gifs? Look no further!" />
+    <meta property="og:url" content="https://randomgoat.com" />
+    <meta property="og:image" content="https://randomgoat.com/images/goat-og.png" />
+    <meta property="og:site_name" content="randomgoat.com" />
     <style>
         * {
             margin: 0;
@@ -22,7 +26,8 @@
             box-sizing: border-box;
         }
 
-        html, body {
+        html,
+        body {
             width: 100%;
             height: 100%;
             margin: 0;
@@ -78,7 +83,7 @@
         .splash-screen h1 {
             font-size: 3rem;
             margin-bottom: 1rem;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -89,22 +94,34 @@
         }
 
         @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
 
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(255,255,255,0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
             border-top: 4px solid white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .gif-container {
@@ -158,7 +175,7 @@
             width: 100vw;
             height: 100vh;
             background: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
-                        linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
+                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
             opacity: 0;
@@ -172,8 +189,13 @@
         }
 
         @keyframes slide {
-            0% { background-position: 0 0, 10px 10px; }
-            100% { background-position: 20px 20px, 30px 30px; }
+            0% {
+                background-position: 0 0, 10px 10px;
+            }
+
+            100% {
+                background-position: 20px 20px, 30px 30px;
+            }
         }
 
         .progress-bar {
@@ -185,7 +207,7 @@
             background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
             transition: width 0.1s linear;
             z-index: 20;
-            box-shadow: 
+            box-shadow:
                 0 0 20px rgba(102, 126, 234, 0.8),
                 0 -2px 10px rgba(102, 126, 234, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
@@ -194,13 +216,14 @@
 
         @keyframes progressGlow {
             0% {
-                box-shadow: 
+                box-shadow:
                     0 0 20px rgba(102, 126, 234, 0.8),
                     0 -2px 10px rgba(102, 126, 234, 0.4),
                     inset 0 1px 0 rgba(255, 255, 255, 0.3);
             }
+
             100% {
-                box-shadow: 
+                box-shadow:
                     0 0 30px rgba(102, 126, 234, 1),
                     0 -4px 15px rgba(102, 126, 234, 0.6),
                     inset 0 1px 0 rgba(255, 255, 255, 0.5);
@@ -229,7 +252,7 @@
             font-size: 1.3rem;
             letter-spacing: -0.5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
@@ -237,7 +260,7 @@
         .logo:hover {
             transform: translateY(-2px) scale(1.05);
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
-            box-shadow: 
+            box-shadow:
                 0 12px 40px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.4);
@@ -251,7 +274,7 @@
         .logo.disabled:hover {
             transform: none;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             border-color: rgba(255, 255, 255, 0.3);
@@ -264,10 +287,23 @@
         }
 
         @keyframes bobble {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            25% { transform: translateY(-1px) rotate(1deg); }
-            50% { transform: translateY(-2px) rotate(0deg); }
-            75% { transform: translateY(-1px) rotate(-1deg); }
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            25% {
+                transform: translateY(-1px) rotate(1deg);
+            }
+
+            50% {
+                transform: translateY(-2px) rotate(0deg);
+            }
+
+            75% {
+                transform: translateY(-1px) rotate(-1deg);
+            }
         }
 
         .logo .site-text {
@@ -281,8 +317,15 @@
         }
 
         @keyframes gradientShift {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .embed-button {
@@ -302,7 +345,7 @@
             font-weight: 600;
             font-size: 1.2rem;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-            box-shadow: 
+            box-shadow:
                 0 8px 32px rgba(0, 0, 0, 0.5),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             display: flex;
@@ -315,7 +358,7 @@
         .embed-button:hover {
             transform: translateY(-2px) scale(1.05);
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
-            box-shadow: 
+            box-shadow:
                 0 12px 40px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.4);
@@ -349,7 +392,7 @@
             padding: 25px;
             max-width: 550px;
             width: 90%;
-            box-shadow: 
+            box-shadow:
                 0 20px 60px rgba(0, 0, 0, 0.8),
                 inset 0 1px 0 rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
@@ -523,7 +566,7 @@
             opacity: 0;
             transform: translateX(-20px) scale(0.9);
             transition: all 0.6s ease;
-            filter: drop-shadow(2px 2px 8px rgba(0,0,0,0.3));
+            filter: drop-shadow(2px 2px 8px rgba(0, 0, 0, 0.3));
         }
 
         .seasonal-mascot.show {
@@ -535,7 +578,7 @@
             color: #ff6b6b;
             font-size: 1.1rem;
             text-align: center;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0, 0, 0, 0.9);
             padding: 20px;
             border-radius: 10px;
             margin: 20px;
@@ -552,22 +595,34 @@
 
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translate(-50%, -60%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
         }
 
         @media (max-width: 768px) {
+
             /* Fix viewport height issues on mobile */
             .splash-screen {
                 height: 100vh;
-                height: 100dvh; /* Use dynamic viewport height if supported */
-                min-height: -webkit-fill-available; /* Safari fallback */
+                height: 100dvh;
+                /* Use dynamic viewport height if supported */
+                min-height: -webkit-fill-available;
+                /* Safari fallback */
             }
 
             .modal-overlay {
                 height: 100vh;
-                height: 100dvh; /* Use dynamic viewport height if supported */
-                min-height: -webkit-fill-available; /* Safari fallback */
+                height: 100dvh;
+                /* Use dynamic viewport height if supported */
+                min-height: -webkit-fill-available;
+                /* Safari fallback */
             }
 
             .splash-screen h1 {
@@ -599,7 +654,8 @@
                 padding: 15px;
                 margin: 10px;
                 max-height: 90vh;
-                max-height: 90dvh; /* Use dynamic viewport height if supported */
+                max-height: 90dvh;
+                /* Use dynamic viewport height if supported */
                 overflow-y: auto;
             }
 
@@ -633,6 +689,7 @@
 
         /* Additional mobile viewport fix */
         @supports (-webkit-touch-callout: none) {
+
             /* iOS Safari specific fixes */
             .splash-screen,
             .modal-overlay {
@@ -641,6 +698,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="splash-screen" id="splashScreen">
@@ -682,17 +740,12 @@
                 </h2>
                 <button class="close-button" id="closeModal">×</button>
             </div>
-            
+
             <div class="embed-preview">
                 <h3>Preview:</h3>
                 <div class="preview-container">
-                    <iframe 
-                        src="//randomgoat.com/embed.php" 
-                        width="480" 
-                        height="270" 
-                        frameBorder="0" 
-                        class="preview-iframe"
-                        allowFullScreen>
+                    <iframe src="//randomgoat.com/embed.php" width="480" height="270" frameBorder="0"
+                        class="preview-iframe" allowFullScreen>
                     </iframe>
                 </div>
             </div>
@@ -701,7 +754,8 @@
                 <h3>Embed Code:</h3>
                 <div class="code-container">
                     <button class="copy-button" id="copyButton">Copy</button>
-                    <pre class="code-block" id="embedCode">&lt;iframe src='//randomgoat.com/embed.php' width='480' height='360' frameBorder='0' id='random-goat-embed' allowFullScreen&gt;&lt;/iframe&gt;</pre>
+                    <pre class="code-block"
+                        id="embedCode">&lt;iframe src='//randomgoat.com/embed.php' width='480' height='360' frameBorder='0' id='random-goat-embed' allowFullScreen&gt;&lt;/iframe&gt;</pre>
                 </div>
             </div>
 
@@ -735,7 +789,7 @@
                 this.isPreloading = false;
                 this.forcedSeason = null; // New property for URL season override
                 this.firstGifReady = false; // Track if first gif is loaded
-                
+
                 this.elements = {
                     splashScreen: document.getElementById('splashScreen'),
                     gifContainer: document.getElementById('gifContainer'),
@@ -751,14 +805,14 @@
                     copyButton: document.getElementById('copyButton'),
                     embedCode: document.getElementById('embedCode')
                 };
-                
+
                 this.init();
             }
 
             parseUrlParams() {
                 const urlParams = new URLSearchParams(window.location.search);
                 this.specificGifId = urlParams.get('id');
-                
+
                 // Parse season parameter
                 const seasonParam = urlParams.get('season');
                 if (seasonParam) {
@@ -771,14 +825,14 @@
                         this.forcedSeason = 'normal';
                     }
                 }
-                
+
                 if (this.specificGifId) {
                     this.isShowingSpecificGif = true;
                 }
             }
 
 
-            
+
             async init() {
                 // Parse URL parameters first
                 this.parseUrlParams();
@@ -832,13 +886,13 @@
                     }
                     // When embedded, let the default link behavior work
                 });
-                
+
                 // Load gif IDs
                 await this.loadGifIds();
-                
+
                 // Load first gif before hiding splash screen
                 await this.prepareFirstGif();
-                
+
                 // Start the transition
                 setTimeout(() => {
                     this.startSmoothTransition();
@@ -848,19 +902,19 @@
             async prepareFirstGif() {
                 try {
                     let gifId;
-                    
+
                     if (this.specificGifId) {
                         gifId = this.specificGifId;
                     } else {
                         gifId = this.getRandomGifId();
                     }
-                    
+
                     if (!gifId) throw new Error('No gif ID available');
-                    
+
                     // Load the first gif to layer1
                     await this.loadGifToLayer(gifId, this.elements.layer1);
                     this.firstGifReady = true;
-                    
+
                     console.log('First gif preloaded successfully');
                 } catch (error) {
                     console.error('Error preparing first gif:', error);
@@ -872,23 +926,23 @@
             async startSmoothTransition() {
                 // Setup seasonal mascot
                 this.setupSeasonalMascot();
-                
+
                 if (this.firstGifReady) {
                     // Show the first gif immediately
                     this.elements.layer1.classList.add('active');
                     this.startTimer();
                 }
-                
+
                 // Now hide the splash screen - the gif is already visible underneath
                 this.hideSplashScreen();
-                
+
                 // Start background systems after transition
                 setTimeout(() => {
                     if (!this.firstGifReady) {
                         // Fallback: load first gif if preload failed
                         this.nextGif();
                     }
-                    
+
                     // Start aggressive preloading
                     this.startPreloadMaintenance();
                 }, 1000);
@@ -912,7 +966,7 @@
                 try {
                     // Validate that the gif ID exists (optional - remove if you want to allow any ID)
                     const isValidGif = await this.validateGifId(this.specificGifId);
-                    
+
                     if (!isValidGif) {
                         console.warn(`Gif ID ${this.specificGifId} may not exist, but attempting to show anyway`);
                     }
@@ -920,14 +974,14 @@
                     const activeLayer = this.getActiveLayer();
                     await this.loadGifToLayer(this.specificGifId, activeLayer);
                     activeLayer.classList.add('active');
-                    
+
                     // Start auto-timer for specific gifs too
                     this.startTimer();
-                    
+
                 } catch (error) {
                     console.error('Error loading specific gif:', error);
                     this.showError(`Failed to load specific gif: ${this.specificGifId}. Switching to random mode...`);
-                    
+
                     // Fall back to random mode
                     this.isShowingSpecificGif = false;
                     this.specificGifId = null;
@@ -941,29 +995,29 @@
                 // Simple validation - try to load the image
                 return new Promise((resolve) => {
                     const img = new Image();
-                    const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
-                    
+                    const gifUrl = `./goats/${gifId}.gif`;
+
                     img.onload = () => resolve(true);
                     img.onerror = () => resolve(false);
-                    
+
                     // Set a timeout for validation
                     setTimeout(() => resolve(false), 5000);
-                    
+
                     img.src = gifUrl;
                 });
             }
-            
+
             async loadGifIds() {
                 try {
                     // Try to load from file first
                     const response = await fetch('data/goats.txt');
                     if (!response.ok) throw new Error('File not found');
-                    
+
                     const text = await response.text();
                     this.gifIds = text.split('\n')
                         .map(line => line.trim())
                         .filter(line => line.length > 0);
-                        
+
                     if (this.gifIds.length === 0) throw new Error('No gif IDs found');
                 } catch (error) {
                     console.log('Using fallback gif IDs...');
@@ -976,18 +1030,18 @@
                 }
                 console.log(`Loaded ${this.gifIds.length} goat gifs!`);
             }
-            
+
             hideSplashScreen() {
                 this.elements.splashScreen.classList.add('hide');
             }
-            
+
             showGifContainer() {
                 this.elements.gifContainer.classList.add('visible');
             }
-            
+
             setupSeasonalMascot() {
                 let mascotImage;
-                
+
                 // Check for forced season first, then fall back to date-based logic
                 if (this.forcedSeason) {
                     switch (this.forcedSeason) {
@@ -1005,7 +1059,7 @@
                 } else {
                     // Original date-based logic
                     const currentMonth = new Date().getMonth() + 1; // 1-12
-                    
+
                     if (currentMonth === 12) {
                         // December - Christmas goat
                         mascotImage = 'images/santa-goat.png';
@@ -1017,90 +1071,90 @@
                         mascotImage = 'images/goat.png';
                     }
                 }
-                
+
                 this.elements.seasonalMascot.src = mascotImage;
-                
+
                 // Show mascot with delay for nice entrance effect
                 setTimeout(() => {
                     this.elements.seasonalMascot.classList.add('show');
                 }, 1500);
             }
-            
+
             getActiveLayer() {
                 return this.currentLayer === 1 ? this.elements.layer1 : this.elements.layer2;
             }
-            
+
             getInactiveLayer() {
                 return this.currentLayer === 1 ? this.elements.layer2 : this.elements.layer1;
             }
-            
+
             getRandomGifId() {
                 if (this.gifIds.length === 0) return null;
-                
+
                 // Filter out already used GIFs if we have enough variety
                 let availableIds = this.gifIds;
-                
+
                 if (this.usedGifIds.size < this.gifIds.length - 1) {
                     availableIds = this.gifIds.filter(id => !this.usedGifIds.has(id));
                 } else {
                     // Reset used GIFs if we've cycled through most of them
                     this.usedGifIds.clear();
                 }
-                
+
                 const randomIndex = Math.floor(Math.random() * availableIds.length);
                 const selectedId = availableIds[randomIndex];
-                
+
                 this.usedGifIds.add(selectedId);
                 return selectedId;
             }
-            
+
             async preloadGif(gifId) {
                 if (this.preloadedGifs.has(gifId)) {
                     return this.preloadedGifs.get(gifId);
                 }
-                
+
                 // Add to preload queue to avoid duplicates
                 if (this.preloadQueue.has(gifId)) {
                     return null;
                 }
-                
+
                 this.preloadQueue.add(gifId);
-                
+
                 return new Promise((resolve, reject) => {
                     const img = new Image();
-                    const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
-                    
+                    const gifUrl = `./goats/${gifId}.gif`;
+
                     img.onload = () => {
                         this.preloadedGifs.set(gifId, gifUrl);
                         this.preloadQueue.delete(gifId);
                         resolve(gifUrl);
                     };
-                    
+
                     img.onerror = () => {
                         this.preloadQueue.delete(gifId);
                         reject(new Error(`Failed to preload gif: ${gifId}`));
                     };
-                    
+
                     img.src = gifUrl;
                 });
             }
-            
+
             async maintainPreloadQueue() {
                 if (this.isPreloading) return;
                 this.isPreloading = true;
-                
+
                 try {
                     const currentPreloaded = this.preloadedGifs.size;
                     const needed = this.targetPreloadCount - currentPreloaded;
-                    
+
                     if (needed <= 0) {
                         this.isPreloading = false;
                         return;
                     }
-                    
+
                     // Preload multiple GIFs in parallel for speed
                     const preloadPromises = [];
-                    
+
                     for (let i = 0; i < needed; i++) {
                         const gifId = this.getRandomGifId();
                         if (gifId && !this.preloadedGifs.has(gifId) && !this.preloadQueue.has(gifId)) {
@@ -1111,66 +1165,66 @@
                             );
                         }
                     }
-                    
+
                     // Wait for all preloads to complete (or fail)
                     await Promise.allSettled(preloadPromises);
-                    
+
                 } catch (error) {
                     console.error('Error maintaining preload queue:', error);
                 } finally {
                     this.isPreloading = false;
                 }
             }
-            
+
             startPreloadMaintenance() {
                 // Initial aggressive preload
                 this.maintainPreloadQueue();
-                
+
                 // Set up periodic maintenance
                 setInterval(() => {
                     this.maintainPreloadQueue();
                 }, 2000); // Check every 2 seconds
             }
-            
+
 
             getNextPreloadedGif() {
                 // Get a random preloaded gif
                 const preloadedIds = Array.from(this.preloadedGifs.keys());
                 if (preloadedIds.length === 0) return null;
-                
+
                 const randomIndex = Math.floor(Math.random() * preloadedIds.length);
                 const selectedId = preloadedIds[randomIndex];
-                
+
                 return {
                     id: selectedId,
                     url: this.preloadedGifs.get(selectedId)
                 };
             }
-            
+
             showLoadingState() {
                 // Disabled - no loading overlay
             }
-            
+
             hideLoadingState() {
                 // Disabled - no loading overlay
             }
-            
+
             async loadGifToLayer(gifId, layer) {
                 const img = layer.querySelector('img');
-                const gifUrl = `https://media.giphy.com/media/${gifId}/giphy.gif`;
-                
+                const gifUrl = `./goats/${gifId}.gif`;
+
                 return new Promise((resolve, reject) => {
                     const tempImg = new Image();
-                    
+
                     tempImg.onload = () => {
                         img.src = gifUrl;
                         resolve();
                     };
-                    
+
                     tempImg.onerror = () => {
                         reject(new Error(`Failed to load gif: ${gifId}`));
                     };
-                    
+
                     // Use preloaded gif if available
                     if (this.preloadedGifs.has(gifId)) {
                         tempImg.src = this.preloadedGifs.get(gifId);
@@ -1179,15 +1233,15 @@
                     }
                 });
             }
-            
+
             startTimer() {
                 this.countdown = 20;
                 this.updateProgressBar();
-                
+
                 this.timer = setInterval(() => {
                     this.countdown--;
                     this.updateProgressBar();
-                    
+
                     if (this.countdown <= 0) {
                         // Let progress bar reach 100% before transitioning
                         setTimeout(() => {
@@ -1196,12 +1250,12 @@
                     }
                 }, 1000);
             }
-            
+
             updateProgressBar() {
                 const progress = ((20 - this.countdown) / 20) * 100;
                 this.elements.progressBar.style.width = `${progress}%`;
             }
-            
+
             stopTimer() {
                 if (this.timer) {
                     clearInterval(this.timer);
@@ -1209,7 +1263,7 @@
                 }
                 this.elements.progressBar.style.width = '0%';
             }
-            
+
             async nextGif() {
                 if (this.isLoading) return;
 
@@ -1218,17 +1272,17 @@
                     this.isShowingSpecificGif = false;
                     this.specificGifId = null;
                 }
-                
+
                 this.isLoading = true;
                 this.stopTimer();
-                
+
                 try {
                     let gifId = null;
                     let gifUrl = null;
-                    
+
                     // Try to use a preloaded gif first
                     const preloadedGif = this.getNextPreloadedGif();
-                    
+
                     if (preloadedGif) {
                         gifId = preloadedGif.id;
                         gifUrl = preloadedGif.url;
@@ -1239,69 +1293,69 @@
                         gifId = this.getRandomGifId();
                         if (!gifId) throw new Error('No gif ID available');
                     }
-                    
+
                     // Get layers
                     const activeLayer = this.getActiveLayer();
                     const inactiveLayer = this.getInactiveLayer();
-                    
+
                     // Show loading state only if we don't have a preloaded gif
                     if (!gifUrl) {
                         this.showLoadingState();
                     }
-                    
+
                     // Load new gif to inactive layer
                     await this.loadGifToLayer(gifId, inactiveLayer);
-                    
+
                     // Hide loading state
                     this.hideLoadingState();
-                    
+
                     // Smooth transition between layers
                     activeLayer.classList.add('fade-out');
                     inactiveLayer.classList.add('active');
-                    
+
                     // Clean up after transition
                     setTimeout(() => {
                         activeLayer.classList.remove('active', 'fade-out');
                         this.currentLayer = this.currentLayer === 1 ? 2 : 1;
                     }, 600);
-                    
+
                     // Start timer for next gif
                     this.startTimer();
-                    
+
                     // Trigger preload maintenance
                     setTimeout(() => {
                         this.maintainPreloadQueue();
                     }, 500);
-                    
+
                 } catch (error) {
                     console.error('Error loading gif:', error);
                     this.hideLoadingState();
                     this.showError('Failed to load gif. Trying another...');
-                    
+
                     setTimeout(() => {
                         this.isLoading = false;
                         this.nextGif();
                     }, 1500);
                     return;
                 }
-                
+
                 this.isLoading = false;
             }
-            
+
             handleInteraction(event) {
                 // Add ripple effect at click/touch position
                 this.createRipple(event);
                 this.nextGif();
             }
-            
+
             createRipple(event) {
                 const container = this.elements.gifContainer;
                 const ripple = document.createElement('div');
-                
+
                 const rect = container.getBoundingClientRect();
                 const x = (event.clientX || event.touches?.[0]?.clientX || rect.width / 2) - rect.left;
                 const y = (event.clientY || event.touches?.[0]?.clientY || rect.height / 2) - rect.top;
-                
+
                 ripple.style.cssText = `
                     position: absolute;
                     border-radius: 50%;
@@ -1315,9 +1369,9 @@
                     width: 0;
                     height: 0;
                 `;
-                
+
                 container.appendChild(ripple);
-                
+
                 // Add ripple animation
                 const style = document.createElement('style');
                 style.textContent = `
@@ -1333,20 +1387,20 @@
                     }
                 `;
                 document.head.appendChild(style);
-                
+
                 setTimeout(() => {
                     container.removeChild(ripple);
                     document.head.removeChild(style);
                 }, 600);
             }
-            
+
             showError(message) {
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-message';
                 errorDiv.textContent = message;
-                
+
                 document.body.appendChild(errorDiv);
-                
+
                 setTimeout(() => {
                     if (errorDiv.parentNode) {
                         errorDiv.style.animation = 'slideIn 0.3s ease reverse';
@@ -1374,12 +1428,12 @@
 
             async copyEmbedCode() {
                 const code = this.elements.embedCode.textContent;
-                
+
                 try {
                     await navigator.clipboard.writeText(code);
                     this.elements.copyButton.textContent = '✓ Copied!';
                     this.elements.copyButton.classList.add('copied');
-                    
+
                     setTimeout(() => {
                         this.elements.copyButton.textContent = 'Copy';
                         this.elements.copyButton.classList.remove('copied');
@@ -1394,12 +1448,12 @@
                     document.body.appendChild(textArea);
                     textArea.focus();
                     textArea.select();
-                    
+
                     try {
                         document.execCommand('copy');
                         this.elements.copyButton.textContent = '✓ Copied!';
                         this.elements.copyButton.classList.add('copied');
-                        
+
                         setTimeout(() => {
                             this.elements.copyButton.textContent = 'Copy';
                             this.elements.copyButton.classList.remove('copied');
@@ -1411,33 +1465,32 @@
                             this.elements.copyButton.textContent = 'Copy';
                         }, 2000);
                     }
-                    
+
                     document.body.removeChild(textArea);
                 }
             }
         }
-        
+
         // Start the app
         window.addEventListener('DOMContentLoaded', () => {
             new OptimizedGoatGifApp();
         });
     </script>
-    
+
     <!-- Default Statcounter code for Random Goat v2 https://randomgoat.com -->
-	<script type="text/javascript">
-	var sc_project=13146731; 
-	var sc_invisible=1; 
-	var sc_security="e7168d71"; 
-	</script>
-	<script type="text/javascript"
-	src="https://www.statcounter.com/counter/counter.js"
-	async></script>
-	<noscript><div class="statcounter"><a title="Web Analytics
-	Made Easy - Statcounter" href="https://statcounter.com/"
-	target="_blank"><img class="statcounter"
-	src="https://c.statcounter.com/13146731/0/e7168d71/1/"
-	alt="Web Analytics Made Easy - Statcounter"
-	referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
-	<!-- End of Statcounter Code -->
+    <script type="text/javascript">
+        var sc_project = 13146731;
+        var sc_invisible = 1;
+        var sc_security = "e7168d71"; 
+    </script>
+    <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
+    <noscript>
+        <div class="statcounter"><a title="Web Analytics
+	Made Easy - Statcounter" href="https://statcounter.com/" target="_blank"><img class="statcounter"
+                    src="https://c.statcounter.com/13146731/0/e7168d71/1/" alt="Web Analytics Made Easy - Statcounter"
+                    referrerPolicy="no-referrer-when-downgrade"></a></div>
+    </noscript>
+    <!-- End of Statcounter Code -->
 </body>
+
 </html>
