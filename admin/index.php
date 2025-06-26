@@ -1309,19 +1309,23 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <?php 
                         $searchParam = $search ? '&search=' . urlencode($search) : '';
                         
-                        // Enhanced pagination logic to limit to maximum 8 buttons
+                        // Enhanced pagination logic to limit to maximum 8 buttons total
                         $maxButtons = 8;
-                        $buttons = [];
                         
-                        // Always try to include Previous/Next if applicable
+                        // Determine which navigation buttons we need
+                        $hasFirst = $page > 1;
                         $hasPrevious = $page > 1;
                         $hasNext = $page < $totalPages;
+                        $hasLast = $page < $totalPages;
                         
-                        // Calculate how many page number buttons we can show
-                        $navButtons = ($hasPrevious ? 1 : 0) + ($hasNext ? 1 : 0);
+                        // Count navigation buttons
+                        $navButtons = ($hasFirst ? 1 : 0) + ($hasPrevious ? 1 : 0) + ($hasNext ? 1 : 0) + ($hasLast ? 1 : 0);
                         $maxPageButtons = $maxButtons - $navButtons;
                         
-                        // If we have 8 or fewer total pages, show all pages
+                        // Ensure we have at least 1 page button (the current page)
+                        $maxPageButtons = max(1, $maxPageButtons);
+                        
+                        // If we have enough space for all pages, show them all
                         if ($totalPages <= $maxPageButtons) {
                             $startPage = 1;
                             $endPage = $totalPages;
@@ -1338,6 +1342,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         }
                         ?>
                         
+                        <?php if ($hasFirst): ?>
+                            <a href="?page=1<?php echo $searchParam; ?>">First</a>
+                        <?php endif; ?>
+                        
                         <?php if ($hasPrevious): ?>
                             <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Previous</a>
                         <?php endif; ?>
@@ -1352,6 +1360,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         
                         <?php if ($hasNext): ?>
                             <a href="?page=<?php echo $page + 1; ?><?php echo $searchParam; ?>">Next</a>
+                        <?php endif; ?>
+                        
+                        <?php if ($hasLast): ?>
+                            <a href="?page=<?php echo $totalPages; ?><?php echo $searchParam; ?>">Last</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
