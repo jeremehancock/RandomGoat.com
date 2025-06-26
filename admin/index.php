@@ -1347,7 +1347,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <?php endif; ?>
                         
                         <?php if ($hasPrevious): ?>
-                            <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Previous</a>
+                            <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Prev</a>
                         <?php endif; ?>
                         
                         <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
