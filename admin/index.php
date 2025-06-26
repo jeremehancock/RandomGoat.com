@@ -550,6 +550,57 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
         }
         
+        /* Custom Tooltip Styles */
+        .tooltip {
+            position: relative;
+        }
+        
+        .tooltip::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 112%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--bg-primary);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .tooltip:hover::before,
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+        
         .pagination {
             display: flex;
             justify-content: center;
@@ -829,8 +880,8 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                     <div class="goat-links">
                                         <a href="https://randomgoat.com?id=<?php echo htmlspecialchars($goatId); ?>" 
                                            target="_blank" 
-                                           class="goat-link randomgoat" 
-                                           title="View on Random Goat">🐐</a>
+                                           class="goat-link randomgoat tooltip" 
+                                           data-tooltip="View on Random Goat">🐐</a>
                                     </div>
                                     <button type="button" class="btn danger" 
                                             onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
