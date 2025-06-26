@@ -151,7 +151,7 @@
             object-fit: cover;
             object-position: center;
             opacity: 0;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             transform: scale(1.02);
             filter: brightness(0.9);
         }
@@ -166,36 +166,6 @@
             opacity: 0;
             transform: scale(0.98);
             filter: brightness(0.8);
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000),
-                linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%, #000);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: 10;
-            animation: slide 2s linear infinite;
-        }
-
-        .loading-overlay.show {
-            opacity: 0.1;
-        }
-
-        @keyframes slide {
-            0% {
-                background-position: 0 0, 10px 10px;
-            }
-
-            100% {
-                background-position: 20px 20px, 30px 30px;
-            }
         }
 
         .progress-bar {
@@ -592,7 +562,19 @@
             animation: slideIn 0.3s ease;
         }
 
-
+        .preload-debug {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 50;
+            display: none;
+        }
 
         @keyframes slideIn {
             from {
@@ -607,22 +589,16 @@
         }
 
         @media (max-width: 768px) {
-
-            /* Fix viewport height issues on mobile */
             .splash-screen {
                 height: 100vh;
                 height: 100dvh;
-                /* Use dynamic viewport height if supported */
                 min-height: -webkit-fill-available;
-                /* Safari fallback */
             }
 
             .modal-overlay {
                 height: 100vh;
                 height: 100dvh;
-                /* Use dynamic viewport height if supported */
                 min-height: -webkit-fill-available;
-                /* Safari fallback */
             }
 
             .splash-screen h1 {
@@ -655,7 +631,6 @@
                 margin: 10px;
                 max-height: 90vh;
                 max-height: 90dvh;
-                /* Use dynamic viewport height if supported */
                 overflow-y: auto;
             }
 
@@ -687,10 +662,8 @@
             }
         }
 
-        /* Additional mobile viewport fix */
         @supports (-webkit-touch-callout: none) {
 
-            /* iOS Safari specific fixes */
             .splash-screen,
             .modal-overlay {
                 height: -webkit-fill-available;
@@ -710,8 +683,6 @@
             <span>🔗</span>
         </button>
 
-
-
         <div class="gif-container" id="gifContainer">
             <div class="gif-layer" id="layer1">
                 <img alt="Goat gif">
@@ -719,7 +690,6 @@
             <div class="gif-layer" id="layer2">
                 <img alt="Goat gif">
             </div>
-            <div class="loading-overlay" id="loadingOverlay"></div>
             <div class="progress-bar" id="progressBar"></div>
         </div>
 
@@ -729,6 +699,10 @@
         </a>
 
         <img class="seasonal-mascot" id="seasonalMascot" alt="Seasonal goat mascot">
+
+        <div class="preload-debug" id="preloadDebug">
+            Preloaded: 0 | Queue: 0
+        </div>
     </div>
 
     <div class="modal-overlay" id="modalOverlay">
@@ -778,24 +752,23 @@
                 this.countdown = 20;
                 this.isLoading = false;
                 this.currentLayer = 1;
-                this.preloadedGifs = new Map();
+                this.preloadedImages = new Map(); // Store actual Image objects
                 this.preloadQueue = new Set();
                 this.usedGifIds = new Set();
-                this.loadingQueue = [];
                 this.specificGifId = null;
                 this.isShowingSpecificGif = false;
                 this.isEmbedded = false;
-                this.targetPreloadCount = 5;
+                this.targetPreloadCount = 12; // Increased from 5
                 this.isPreloading = false;
-                this.forcedSeason = null; // New property for URL season override
-                this.firstGifReady = false; // Track if first gif is loaded
+                this.forcedSeason = null;
+                this.firstGifReady = false;
+                this.debugMode = false; // Set to true to see preload stats
 
                 this.elements = {
                     splashScreen: document.getElementById('splashScreen'),
                     gifContainer: document.getElementById('gifContainer'),
                     layer1: document.getElementById('layer1'),
                     layer2: document.getElementById('layer2'),
-                    loadingOverlay: document.getElementById('loadingOverlay'),
                     progressBar: document.getElementById('progressBar'),
                     logo: document.getElementById('logo'),
                     seasonalMascot: document.getElementById('seasonalMascot'),
@@ -803,7 +776,8 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode')
+                    embedCode: document.getElementById('embedCode'),
+                    preloadDebug: document.getElementById('preloadDebug')
                 };
 
                 this.init();
@@ -812,6 +786,12 @@
             parseUrlParams() {
                 const urlParams = new URLSearchParams(window.location.search);
                 this.specificGifId = urlParams.get('id');
+
+                // Parse debug parameter
+                this.debugMode = urlParams.get('debug') === 'true';
+                if (this.debugMode) {
+                    this.elements.preloadDebug.style.display = 'block';
+                }
 
                 // Parse season parameter
                 const seasonParam = urlParams.get('season');
@@ -831,7 +811,12 @@
                 }
             }
 
-
+            updateDebugDisplay() {
+                if (this.debugMode) {
+                    this.elements.preloadDebug.textContent =
+                        `Preloaded: ${this.preloadedImages.size} | Queue: ${this.preloadQueue.size}`;
+                }
+            }
 
             async init() {
                 // Parse URL parameters first
@@ -839,6 +824,12 @@
 
                 // Hide embed button if we're in an iframe (embedded)
                 this.checkIfEmbedded();
+
+                // Load gif IDs first
+                await this.loadGifIds();
+
+                // Start aggressive preloading immediately
+                this.startPreloadMaintenance();
 
                 // Add interaction event listeners
                 document.addEventListener('click', (e) => this.handleInteraction(e));
@@ -880,15 +871,10 @@
                 // Handle logo clicks based on embed status
                 this.elements.logo.addEventListener('click', (e) => {
                     if (!this.isEmbedded) {
-                        // Prevent logo clicks when not embedded
                         e.preventDefault();
                         e.stopPropagation();
                     }
-                    // When embedded, let the default link behavior work
                 });
-
-                // Load gif IDs
-                await this.loadGifIds();
 
                 // Load first gif before hiding splash screen
                 await this.prepareFirstGif();
@@ -896,7 +882,7 @@
                 // Start the transition
                 setTimeout(() => {
                     this.startSmoothTransition();
-                }, 1500);
+                }, 1000); // Reduced delay
             }
 
             async prepareFirstGif() {
@@ -906,7 +892,19 @@
                     if (this.specificGifId) {
                         gifId = this.specificGifId;
                     } else {
-                        gifId = this.getRandomGifId();
+                        // Wait for some preloaded gifs first
+                        let attempts = 0;
+                        while (this.preloadedImages.size === 0 && attempts < 20) {
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                            attempts++;
+                        }
+
+                        if (this.preloadedImages.size > 0) {
+                            const preloadedIds = Array.from(this.preloadedImages.keys());
+                            gifId = preloadedIds[0];
+                        } else {
+                            gifId = this.getRandomGifId();
+                        }
                     }
 
                     if (!gifId) throw new Error('No gif ID available');
@@ -918,7 +916,6 @@
                     console.log('First gif preloaded successfully');
                 } catch (error) {
                     console.error('Error preparing first gif:', error);
-                    // Continue anyway, fallback will handle it
                     this.firstGifReady = false;
                 }
             }
@@ -933,7 +930,7 @@
                     this.startTimer();
                 }
 
-                // Now hide the splash screen - the gif is already visible underneath
+                // Hide the splash screen - the gif is already visible underneath
                 this.hideSplashScreen();
 
                 // Start background systems after transition
@@ -942,74 +939,22 @@
                         // Fallback: load first gif if preload failed
                         this.nextGif();
                     }
-
-                    // Start aggressive preloading
-                    this.startPreloadMaintenance();
-                }, 1000);
+                }, 500);
             }
 
             checkIfEmbedded() {
-                // Check if we're running inside an iframe
                 if (window.self !== window.top) {
                     this.isEmbedded = true;
-                    // We're embedded, hide the embed button and seasonal mascot
                     this.elements.embedButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
                 } else {
                     this.isEmbedded = false;
-                    // We're not embedded, disable logo clicks
                     this.elements.logo.classList.add('disabled');
                 }
             }
 
-            async showSpecificGif() {
-                try {
-                    // Validate that the gif ID exists (optional - remove if you want to allow any ID)
-                    const isValidGif = await this.validateGifId(this.specificGifId);
-
-                    if (!isValidGif) {
-                        console.warn(`Gif ID ${this.specificGifId} may not exist, but attempting to show anyway`);
-                    }
-
-                    const activeLayer = this.getActiveLayer();
-                    await this.loadGifToLayer(this.specificGifId, activeLayer);
-                    activeLayer.classList.add('active');
-
-                    // Start auto-timer for specific gifs too
-                    this.startTimer();
-
-                } catch (error) {
-                    console.error('Error loading specific gif:', error);
-                    this.showError(`Failed to load specific gif: ${this.specificGifId}. Switching to random mode...`);
-
-                    // Fall back to random mode
-                    this.isShowingSpecificGif = false;
-                    this.specificGifId = null;
-                    setTimeout(() => {
-                        this.nextGif();
-                    }, 2000);
-                }
-            }
-
-            async validateGifId(gifId) {
-                // Simple validation - try to load the image
-                return new Promise((resolve) => {
-                    const img = new Image();
-                    const gifUrl = `./goats/${gifId}.gif`;
-
-                    img.onload = () => resolve(true);
-                    img.onerror = () => resolve(false);
-
-                    // Set a timeout for validation
-                    setTimeout(() => resolve(false), 5000);
-
-                    img.src = gifUrl;
-                });
-            }
-
             async loadGifIds() {
                 try {
-                    // Try to load from file first
                     const response = await fetch('data/goats.txt');
                     if (!response.ok) throw new Error('File not found');
 
@@ -1021,7 +966,6 @@
                     if (this.gifIds.length === 0) throw new Error('No gif IDs found');
                 } catch (error) {
                     console.log('Using fallback gif IDs...');
-                    // Expanded fallback list for better variety
                     this.gifIds = [
                         'i2KjyMsyb2L3G',
                         '6qbvtoTgXyoy4',
@@ -1035,14 +979,9 @@
                 this.elements.splashScreen.classList.add('hide');
             }
 
-            showGifContainer() {
-                this.elements.gifContainer.classList.add('visible');
-            }
-
             setupSeasonalMascot() {
                 let mascotImage;
 
-                // Check for forced season first, then fall back to date-based logic
                 if (this.forcedSeason) {
                     switch (this.forcedSeason) {
                         case 'christmas':
@@ -1057,24 +996,19 @@
                             break;
                     }
                 } else {
-                    // Original date-based logic
-                    const currentMonth = new Date().getMonth() + 1; // 1-12
+                    const currentMonth = new Date().getMonth() + 1;
 
                     if (currentMonth === 12) {
-                        // December - Christmas goat
                         mascotImage = 'images/santa-goat.png';
                     } else if (currentMonth === 10) {
-                        // October - Halloween goat
                         mascotImage = 'images/halloween-goat.png';
                     } else {
-                        // All other months - regular goat
                         mascotImage = 'images/goat.png';
                     }
                 }
 
                 this.elements.seasonalMascot.src = mascotImage;
 
-                // Show mascot with delay for nice entrance effect
                 setTimeout(() => {
                     this.elements.seasonalMascot.classList.add('show');
                 }, 1500);
@@ -1091,13 +1025,11 @@
             getRandomGifId() {
                 if (this.gifIds.length === 0) return null;
 
-                // Filter out already used GIFs if we have enough variety
                 let availableIds = this.gifIds;
 
                 if (this.usedGifIds.size < this.gifIds.length - 1) {
                     availableIds = this.gifIds.filter(id => !this.usedGifIds.has(id));
                 } else {
-                    // Reset used GIFs if we've cycled through most of them
                     this.usedGifIds.clear();
                 }
 
@@ -1109,11 +1041,10 @@
             }
 
             async preloadGif(gifId) {
-                if (this.preloadedGifs.has(gifId)) {
-                    return this.preloadedGifs.get(gifId);
+                if (this.preloadedImages.has(gifId)) {
+                    return this.preloadedImages.get(gifId);
                 }
 
-                // Add to preload queue to avoid duplicates
                 if (this.preloadQueue.has(gifId)) {
                     return null;
                 }
@@ -1125,13 +1056,16 @@
                     const gifUrl = `./goats/${gifId}.gif`;
 
                     img.onload = () => {
-                        this.preloadedGifs.set(gifId, gifUrl);
+                        // Store the actual Image object, not just the URL
+                        this.preloadedImages.set(gifId, img);
                         this.preloadQueue.delete(gifId);
-                        resolve(gifUrl);
+                        this.updateDebugDisplay();
+                        resolve(img);
                     };
 
                     img.onerror = () => {
                         this.preloadQueue.delete(gifId);
+                        this.updateDebugDisplay();
                         reject(new Error(`Failed to preload gif: ${gifId}`));
                     };
 
@@ -1144,7 +1078,7 @@
                 this.isPreloading = true;
 
                 try {
-                    const currentPreloaded = this.preloadedGifs.size;
+                    const currentPreloaded = this.preloadedImages.size;
                     const needed = this.targetPreloadCount - currentPreloaded;
 
                     if (needed <= 0) {
@@ -1154,10 +1088,11 @@
 
                     // Preload multiple GIFs in parallel for speed
                     const preloadPromises = [];
+                    const maxConcurrent = Math.min(needed, 6); // Limit concurrent loads
 
-                    for (let i = 0; i < needed; i++) {
+                    for (let i = 0; i < maxConcurrent; i++) {
                         const gifId = this.getRandomGifId();
-                        if (gifId && !this.preloadedGifs.has(gifId) && !this.preloadQueue.has(gifId)) {
+                        if (gifId && !this.preloadedImages.has(gifId) && !this.preloadQueue.has(gifId)) {
                             preloadPromises.push(
                                 this.preloadGif(gifId).catch(error => {
                                     console.log(`Preload failed for ${gifId}:`, error.message);
@@ -1166,30 +1101,28 @@
                         }
                     }
 
-                    // Wait for all preloads to complete (or fail)
                     await Promise.allSettled(preloadPromises);
 
                 } catch (error) {
                     console.error('Error maintaining preload queue:', error);
                 } finally {
                     this.isPreloading = false;
+                    this.updateDebugDisplay();
                 }
             }
 
             startPreloadMaintenance() {
-                // Initial aggressive preload
+                // Start immediate aggressive preload
                 this.maintainPreloadQueue();
 
-                // Set up periodic maintenance
+                // Set up continuous maintenance
                 setInterval(() => {
                     this.maintainPreloadQueue();
-                }, 2000); // Check every 2 seconds
+                }, 1000); // Check every second
             }
 
-
             getNextPreloadedGif() {
-                // Get a random preloaded gif
-                const preloadedIds = Array.from(this.preloadedGifs.keys());
+                const preloadedIds = Array.from(this.preloadedImages.keys());
                 if (preloadedIds.length === 0) return null;
 
                 const randomIndex = Math.floor(Math.random() * preloadedIds.length);
@@ -1197,20 +1130,24 @@
 
                 return {
                     id: selectedId,
-                    url: this.preloadedGifs.get(selectedId)
+                    image: this.preloadedImages.get(selectedId)
                 };
-            }
-
-            showLoadingState() {
-                // Disabled - no loading overlay
-            }
-
-            hideLoadingState() {
-                // Disabled - no loading overlay
             }
 
             async loadGifToLayer(gifId, layer) {
                 const img = layer.querySelector('img');
+
+                // Check if we have this gif preloaded
+                if (this.preloadedImages.has(gifId)) {
+                    const preloadedImage = this.preloadedImages.get(gifId);
+                    img.src = preloadedImage.src;
+                    // Remove from preloaded since we're using it
+                    this.preloadedImages.delete(gifId);
+                    this.updateDebugDisplay();
+                    return Promise.resolve();
+                }
+
+                // If not preloaded, load it normally
                 const gifUrl = `./goats/${gifId}.gif`;
 
                 return new Promise((resolve, reject) => {
@@ -1225,12 +1162,7 @@
                         reject(new Error(`Failed to load gif: ${gifId}`));
                     };
 
-                    // Use preloaded gif if available
-                    if (this.preloadedGifs.has(gifId)) {
-                        tempImg.src = this.preloadedGifs.get(gifId);
-                    } else {
-                        tempImg.src = gifUrl;
-                    }
+                    tempImg.src = gifUrl;
                 });
             }
 
@@ -1243,7 +1175,6 @@
                     this.updateProgressBar();
 
                     if (this.countdown <= 0) {
-                        // Let progress bar reach 100% before transitioning
                         setTimeout(() => {
                             this.nextGif();
                         }, 100);
@@ -1267,7 +1198,6 @@
             async nextGif() {
                 if (this.isLoading) return;
 
-                // If we were showing a specific gif, switch to random mode
                 if (this.isShowingSpecificGif) {
                     this.isShowingSpecificGif = false;
                     this.specificGifId = null;
@@ -1278,16 +1208,14 @@
 
                 try {
                     let gifId = null;
-                    let gifUrl = null;
+                    let isPreloaded = false;
 
                     // Try to use a preloaded gif first
                     const preloadedGif = this.getNextPreloadedGif();
 
                     if (preloadedGif) {
                         gifId = preloadedGif.id;
-                        gifUrl = preloadedGif.url;
-                        // Remove from preloaded gifs since we're using it
-                        this.preloadedGifs.delete(gifId);
+                        isPreloaded = true;
                     } else {
                         // Fallback to loading a new gif
                         gifId = this.getRandomGifId();
@@ -1298,18 +1226,19 @@
                     const activeLayer = this.getActiveLayer();
                     const inactiveLayer = this.getInactiveLayer();
 
-                    // Show loading state only if we don't have a preloaded gif
-                    if (!gifUrl) {
-                        this.showLoadingState();
+                    // Load gif to inactive layer
+                    if (isPreloaded) {
+                        // Use preloaded image immediately
+                        const preloadedImage = this.preloadedImages.get(gifId);
+                        inactiveLayer.querySelector('img').src = preloadedImage.src;
+                        this.preloadedImages.delete(gifId);
+                        this.updateDebugDisplay();
+                    } else {
+                        // Load normally
+                        await this.loadGifToLayer(gifId, inactiveLayer);
                     }
 
-                    // Load new gif to inactive layer
-                    await this.loadGifToLayer(gifId, inactiveLayer);
-
-                    // Hide loading state
-                    this.hideLoadingState();
-
-                    // Smooth transition between layers
+                    // Instant smooth transition
                     activeLayer.classList.add('fade-out');
                     inactiveLayer.classList.add('active');
 
@@ -1317,7 +1246,7 @@
                     setTimeout(() => {
                         activeLayer.classList.remove('active', 'fade-out');
                         this.currentLayer = this.currentLayer === 1 ? 2 : 1;
-                    }, 600);
+                    }, 400); // Reduced from 600ms
 
                     // Start timer for next gif
                     this.startTimer();
@@ -1325,17 +1254,16 @@
                     // Trigger preload maintenance
                     setTimeout(() => {
                         this.maintainPreloadQueue();
-                    }, 500);
+                    }, 200);
 
                 } catch (error) {
                     console.error('Error loading gif:', error);
-                    this.hideLoadingState();
                     this.showError('Failed to load gif. Trying another...');
 
                     setTimeout(() => {
                         this.isLoading = false;
                         this.nextGif();
-                    }, 1500);
+                    }, 1000);
                     return;
                 }
 
@@ -1343,7 +1271,6 @@
             }
 
             handleInteraction(event) {
-                // Add ripple effect at click/touch position
                 this.createRipple(event);
                 this.nextGif();
             }
@@ -1372,7 +1299,6 @@
 
                 container.appendChild(ripple);
 
-                // Add ripple animation
                 const style = document.createElement('style');
                 style.textContent = `
                     @keyframes ripple {
@@ -1421,7 +1347,6 @@
             closeModal() {
                 this.elements.modalOverlay.classList.remove('show');
                 document.body.style.overflow = '';
-                // Reset copy button text if it was changed
                 this.elements.copyButton.textContent = 'Copy';
                 this.elements.copyButton.classList.remove('copied');
             }
@@ -1439,7 +1364,6 @@
                         this.elements.copyButton.classList.remove('copied');
                     }, 2000);
                 } catch (err) {
-                    // Fallback for browsers that don't support clipboard API
                     const textArea = document.createElement('textarea');
                     textArea.value = code;
                     textArea.style.position = 'fixed';
@@ -1476,21 +1400,6 @@
             new OptimizedGoatGifApp();
         });
     </script>
-
-    <!-- Default Statcounter code for Random Goat v2 https://randomgoat.com -->
-    <script type="text/javascript">
-        var sc_project = 13146731;
-        var sc_invisible = 1;
-        var sc_security = "e7168d71"; 
-    </script>
-    <script type="text/javascript" src="https://www.statcounter.com/counter/counter.js" async></script>
-    <noscript>
-        <div class="statcounter"><a title="Web Analytics
-	Made Easy - Statcounter" href="https://statcounter.com/" target="_blank"><img class="statcounter"
-                    src="https://c.statcounter.com/13146731/0/e7168d71/1/" alt="Web Analytics Made Easy - Statcounter"
-                    referrerPolicy="no-referrer-when-downgrade"></a></div>
-    </noscript>
-    <!-- End of Statcounter Code -->
 </body>
 
 </html>
