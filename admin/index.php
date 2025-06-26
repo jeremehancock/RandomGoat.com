@@ -692,7 +692,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             <div class="controls">
                 <div class="controls-grid">
                     <div class="control-section">
-                        <h3>Add New Goat</h3>
+                        <h3>Add Goat</h3>
                         <form method="POST">
                             <input type="hidden" name="action" value="add">
                             <div class="form-content">
@@ -709,7 +709,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                     </div>
                     
                     <div class="control-section">
-                        <h3>Search Gallery</h3>
+                        <h3>Find Goat</h3>
                         <form method="GET">
                             <div class="form-content">
                                 <div class="form-group">
