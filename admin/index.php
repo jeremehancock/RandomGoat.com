@@ -550,21 +550,6 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
         }
         
-        .goat-link.giphy {
-            background: #00ff99;
-            color: #000000;
-            font-family: 'Arial Black', Arial, sans-serif;
-            font-size: 18px;
-            font-weight: 900;
-            box-shadow: 0 2px 4px rgba(0, 255, 153, 0.3);
-        }
-        
-        .goat-link.giphy:hover {
-            background: #00e68a;
-            transform: translateY(-1px);
-            box-shadow: 0 3px 6px rgba(0, 255, 153, 0.4);
-        }
-        
         .pagination {
             display: flex;
             justify-content: center;
@@ -846,10 +831,6 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                            target="_blank" 
                                            class="goat-link randomgoat" 
                                            title="View on Random Goat">🐐</a>
-                                        <a href="https://giphy.com/gifs/<?php echo htmlspecialchars($goatId); ?>" 
-                                           target="_blank" 
-                                           class="goat-link giphy" 
-                                           title="View on Giphy">G</a>
                                     </div>
                                     <button type="button" class="btn danger" 
                                             onclick="showDeleteModal('<?php echo htmlspecialchars($goatId); ?>')">
