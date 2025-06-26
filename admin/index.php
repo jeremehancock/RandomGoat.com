@@ -929,7 +929,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			.pagination {
 				padding: 20px 16px;
 				margin: 0;
-				gap: 6px;
+				gap: 8px;
 				justify-content: center;
 				flex-wrap: wrap;
 				overflow-x: visible;
@@ -937,14 +937,14 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			}
 			
 			.pagination a, .pagination span {
-				padding: 10px 12px;
-				min-width: 40px;
-				min-height: 40px;
+				padding: 12px 14px;
+				min-width: 46px;
+				min-height: 46px;
 				border-radius: 10px;
-				font-size: 13px;
+				font-size: 14px;
 				flex-shrink: 1;
 				touch-action: manipulation;
-				max-width: calc((100vw - 120px) / 7); /* Ensure max 7 buttons fit */
+				max-width: calc((100vw - 120px) / 6); /* Ensure max 6 buttons fit with larger size */
 				text-align: center;
 				display: flex;
 				align-items: center;
@@ -957,9 +957,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			/* Smaller numbered page buttons for better fit */
 			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
 			.pagination span.current {
-				font-size: 12px;
-				min-width: 36px;
-				padding: 8px 10px;
+				font-size: 13px;
+				min-width: 42px;
+				padding: 10px 12px;
 			}
 			
 			/* Mobile modal improvements */
@@ -1111,20 +1111,20 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			}
 			
 			.pagination a, .pagination span {
-				padding: 8px 8px;
-				min-width: 32px;
-				min-height: 32px;
-				font-size: 11px;
-				gap: 4px;
-				max-width: calc((100vw - 80px) / 7); /* Tighter fit for small screens */
+				padding: 10px 10px;
+				min-width: 38px;
+				min-height: 38px;
+				font-size: 12px;
+				gap: 6px;
+				max-width: calc((100vw - 80px) / 6); /* Adjust for larger buttons */
 			}
 			
 			/* Even smaller numbered buttons on small screens */
 			.pagination a:not([href*="Previous"]):not([href*="Next"]):not([href*="First"]):not([href*="Last"]),
 			.pagination span.current {
-				font-size: 10px;
-				min-width: 28px;
-				padding: 6px 8px;
+				font-size: 11px;
+				min-width: 34px;
+				padding: 8px 10px;
 			}
 			
 			.modal-content {
@@ -1229,9 +1229,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 			}
 			
 			.pagination a, .pagination span {
-				padding: 8px 14px;
-				min-width: 44px;
-				max-width: calc((100vw - 160px) / 8); /* More space in landscape */
+				padding: 10px 16px;
+				min-width: 48px;
+				max-width: calc((100vw - 160px) / 7); /* More space in landscape */
 			}
 		}
     </style>
