@@ -20,10 +20,6 @@
     <meta property="og:image" content="https://randomgoat.com/images/goat-og.png" />
     <meta property="og:site_name" content="randomgoat.com" />
     <style>
-        :root {
-            --vh: 1vh;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -49,7 +45,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
         }
 
         .container {
@@ -58,7 +53,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -70,9 +64,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
-            min-height: 100vh;
-            min-height: calc(var(--vh, 1vh) * 100);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -139,7 +130,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
             background: #000;
             opacity: 1;
         }
@@ -150,7 +140,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -159,7 +148,6 @@
         .gif-layer img {
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
             object-fit: cover;
             object-position: center;
             opacity: 0;
@@ -352,9 +340,6 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            height: calc(var(--vh, 1vh) * 100);
-            min-height: 100vh;
-            min-height: calc(var(--vh, 1vh) * 100);
             background: rgba(0, 0, 0, 0.8);
             backdrop-filter: blur(5px);
             display: flex;
@@ -603,48 +588,16 @@
             }
         }
 
-        /* Enhanced Mobile Viewport Handling */
         @media (max-width: 768px) {
             .splash-screen {
                 height: 100vh;
                 height: 100dvh;
-                height: calc(var(--vh, 1vh) * 100);
-                min-height: 100vh;
-                min-height: 100dvh;
-                min-height: calc(var(--vh, 1vh) * 100);
                 min-height: -webkit-fill-available;
             }
 
             .modal-overlay {
                 height: 100vh;
                 height: 100dvh;
-                height: calc(var(--vh, 1vh) * 100);
-                min-height: 100vh;
-                min-height: 100dvh;
-                min-height: calc(var(--vh, 1vh) * 100);
-                min-height: -webkit-fill-available;
-            }
-
-            .gif-container,
-            .gif-layer {
-                height: 100vh;
-                height: 100dvh;
-                height: calc(var(--vh, 1vh) * 100);
-                min-height: -webkit-fill-available;
-            }
-
-            .gif-layer img {
-                height: 100vh;
-                height: 100dvh;
-                height: calc(var(--vh, 1vh) * 100);
-                min-height: -webkit-fill-available;
-            }
-
-            body,
-            .container {
-                height: 100vh;
-                height: 100dvh;
-                height: calc(var(--vh, 1vh) * 100);
                 min-height: -webkit-fill-available;
             }
 
@@ -678,7 +631,6 @@
                 margin: 10px;
                 max-height: 90vh;
                 max-height: 90dvh;
-                max-height: calc(var(--vh, 1vh) * 90);
                 overflow-y: auto;
             }
 
@@ -710,41 +662,11 @@
             }
         }
 
-        /* Enhanced iOS Safari Support */
         @supports (-webkit-touch-callout: none) {
 
             .splash-screen,
-            .modal-overlay,
-            .gif-container,
-            .gif-layer,
-            body,
-            .container {
+            .modal-overlay {
                 height: -webkit-fill-available;
-                min-height: -webkit-fill-available;
-            }
-
-            .gif-layer img {
-                height: -webkit-fill-available;
-                min-height: -webkit-fill-available;
-            }
-        }
-
-        /* For browsers that support dvh (dynamic viewport height) */
-        @supports (height: 100dvh) {
-
-            .splash-screen,
-            .modal-overlay,
-            .gif-container,
-            .gif-layer,
-            body,
-            .container {
-                height: 100dvh;
-                min-height: 100dvh;
-            }
-
-            .gif-layer img {
-                height: 100dvh;
-                min-height: 100dvh;
             }
         }
     </style>
@@ -822,22 +744,6 @@
     </div>
 
     <script>
-        // Set CSS custom property for viewport height on mobile
-        function setViewportHeight() {
-            let vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
-
-        // Set viewport height on load and resize
-        window.addEventListener('load', setViewportHeight);
-        window.addEventListener('resize', setViewportHeight);
-        window.addEventListener('orientationchange', () => {
-            setTimeout(setViewportHeight, 100);
-        });
-
-        // Force an initial calculation
-        setViewportHeight();
-
         class OptimizedGoatGifApp {
             constructor() {
                 this.gifIds = [];
