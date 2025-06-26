@@ -760,28 +760,38 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				backdrop-filter: blur(10px);
 				border: none;
 				border-bottom: 1px solid var(--border);
+				flex-direction: row;
+				align-items: flex-start;
+				justify-content: space-between;
+			}
+			
+			.header-content {
+				flex: 1;
 			}
 			
 			.header-content h1 {
 				font-size: 1.75rem;
 				margin-bottom: 8px;
-				text-align: center;
+				text-align: left;
 			}
 			
 			.stats {
-				text-align: center;
+				text-align: left;
 				font-size: 13px;
-				margin-bottom: 15px;
+				margin-bottom: 0;
 			}
 			
 			.logout-btn {
-				align-self: center;
-				width: 100%;
-				max-width: 200px;
-				margin: 0 auto;
-				padding: 14px 20px;
-				font-size: 15px;
-				border-radius: 12px;
+				width: auto;
+				max-width: none;
+				margin: 0;
+				padding: 8px 16px;
+				font-size: 12px;
+				border-radius: 8px;
+				min-width: 70px;
+				min-height: 36px;
+				flex-shrink: 0;
+				margin-left: 12px;
 			}
 			
 			/* App-like controls section */
@@ -921,7 +931,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				margin: 0;
 				gap: 8px;
 				overflow-x: auto;
-				justify-content: flex-start;
+				justify-content: center;
 				-webkit-overflow-scrolling: touch;
 			}
 			
@@ -1054,6 +1064,51 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				font-size: 1.5rem;
 			}
 			
+			.logout-btn {
+				padding: 6px 12px;
+				font-size: 11px;
+				min-width: 60px;
+				min-height: 32px;
+			}
+			
+			.controls {
+				margin: 16px 12px;
+				padding: 16px;
+			}
+			
+			.control-section {
+				padding: 16px;
+			}
+			
+			.gallery {
+				padding: 0 12px;
+				gap: 12px;
+			}
+			
+			.goat-gif {
+				height: 220px;
+			}
+			
+			.pagination {
+				padding: 16px 12px;
+			}
+			
+			.modal-content {
+				margin: 16px 12px;
+				padding: 20px;
+				width: calc(100% - 24px);
+			}
+			
+			.message {
+				margin: 12px;
+			}
+			
+			.empty-state {
+				margin: 16px 12px;
+				padding: 40px 16px;
+			}
+		}
+			
 			.controls {
 				margin: 16px 12px;
 				padding: 16px;
@@ -1098,20 +1153,30 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
 				position: relative;
 				border-radius: 0;
 				padding: 16px 20px;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: flex-start;
 			}
 			
 			.header-content h1 {
 				font-size: 1.5rem;
 				margin-bottom: 4px;
+				text-align: left;
 			}
 			
 			.stats {
-				margin-bottom: 8px;
+				margin-bottom: 0;
+				text-align: left;
 			}
 			
 			.logout-btn {
-				padding: 12px 20px;
-				max-width: 150px;
+				padding: 6px 12px;
+				max-width: none;
+				width: auto;
+				min-width: 60px;
+				min-height: 32px;
+				font-size: 11px;
+				margin-left: 12px;
 			}
 			
 			.gallery {
