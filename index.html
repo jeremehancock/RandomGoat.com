@@ -109,15 +109,6 @@
             }
         }
 
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
         @keyframes spin {
             0% {
                 transform: rotate(0deg);
@@ -695,7 +686,6 @@
     <div class="container">
         <div class="splash-screen" id="splashScreen">
             <h1>🐐 Loading Goats...</h1>
-            <div class="loading-spinner"></div>
         </div>
 
         <button class="embed-button" id="embedButton">
@@ -711,7 +701,6 @@
             </div>
             <div class="loading-overlay" id="loadingOverlay"></div>
             <div class="progress-bar" id="progressBar"></div>
-            <div class="connection-status" id="connectionStatus">Slow connection detected</div>
         </div>
 
         <a href="https://randomgoat.com" target="_blank" class="logo" id="logo">
@@ -840,8 +829,7 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode'),
-                    connectionStatus: document.getElementById('connectionStatus')
+                    embedCode: document.getElementById('embedCode')
                 };
 
                 this.init();
@@ -999,21 +987,12 @@
                     const loadTime = Date.now() - startTime;
                     this.performance.loadTimes.push(loadTime);
 
-                    // Update network assessment based on first load
-                    if (loadTime > 3000) {
-                        this.performance.isSlowNetwork = true;
-                        console.log('Slow network detected based on first gif load time');
-                    }
-
                     this.firstGifReady = true;
                     console.log(`First gif loaded in ${loadTime}ms`);
                 } catch (error) {
                     console.error('Error preparing first gif:', error);
                     this.performance.failureRate += 0.1;
                     this.firstGifReady = false;
-
-                    // Show a more user-friendly error for the first gif
-                    this.showError('Having trouble loading goats... 🐐 Retrying!');
                 }
             }
 
@@ -1297,13 +1276,6 @@
                 this.loadingTimeout = setTimeout(() => {
                     this.elements.loadingOverlay.classList.add('show');
                 }, 200); // Reduced from 500ms to 200ms
-
-                // Show connection status for slow networks after a longer delay
-                if (this.performance.isSlowNetwork) {
-                    this.connectionTimeout = setTimeout(() => {
-                        this.showConnectionStatus();
-                    }, 1000);
-                }
             }
 
             hideLoadingState() {
@@ -1311,21 +1283,7 @@
                     clearTimeout(this.loadingTimeout);
                     this.loadingTimeout = null;
                 }
-                if (this.connectionTimeout) {
-                    clearTimeout(this.connectionTimeout);
-                    this.connectionTimeout = null;
-                }
                 this.elements.loadingOverlay.classList.remove('show');
-                this.hideConnectionStatus();
-            }
-
-            showConnectionStatus(message = 'Slow connection detected') {
-                this.elements.connectionStatus.textContent = message;
-                this.elements.connectionStatus.classList.add('show');
-            }
-
-            hideConnectionStatus() {
-                this.elements.connectionStatus.classList.remove('show');
             }
 
             async loadGifToLayer(gifId, layer) {
@@ -1469,16 +1427,7 @@
                 } catch (error) {
                     console.error('Error loading gif:', error);
                     this.hideLoadingState();
-
-                    // Show themed error messages
-                    const errorMessages = [
-                        'Goat got lost! 🐐 Finding another...',
-                        'This goat is camera shy! 📸 Trying next...',
-                        'Goat is still loading! 🔄 Please wait...',
-                        'Network hiccup! 🌐 Fetching backup goat...'
-                    ];
-                    const randomMessage = errorMessages[Math.floor(Math.random() * errorMessages.length)];
-                    this.showError(randomMessage);
+                    this.showError('Failed to load gif. Trying another...');
 
                     // Ensure timer restarts even on error
                     this.startTimer();
@@ -1509,7 +1458,6 @@
                         console.warn('Loading state stuck - forcing reset');
                         this.isLoading = false;
                         this.hideLoadingState();
-                        this.showError('Goats are being extra stubborn today! 🐐 Refreshing...');
                         this.startTimer(); // Ensure timer is running
                     }
                 }, 10000); // 10 second safeguard
@@ -1575,26 +1523,22 @@
             }
 
             showError(message) {
-                // Remove any existing error messages
-                const existingErrors = document.querySelectorAll('.error-message');
-                existingErrors.forEach(error => error.remove());
-
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-message';
-                errorDiv.innerHTML = `<span>${message}</span>`;
+                errorDiv.textContent = message;
 
                 document.body.appendChild(errorDiv);
 
                 setTimeout(() => {
                     if (errorDiv.parentNode) {
-                        errorDiv.style.animation = 'errorSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) reverse';
+                        errorDiv.style.animation = 'slideIn 0.3s ease reverse';
                         setTimeout(() => {
                             if (errorDiv.parentNode) {
                                 errorDiv.parentNode.removeChild(errorDiv);
                             }
-                        }, 400);
+                        }, 300);
                     }
-                }, 3000); // Show for 3 seconds
+                }, 2000);
             }
 
             openModal() {
