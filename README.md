@@ -12,7 +12,7 @@ Sometimes you just need to see a goat doing goat things. Whether they're jumping
 
 ## ✨ Features
 
-- **🎲 Seaminly endless Random Goats** - New goat GIF every 20 seconds, or click/tap for instant goat satisfaction
+- **🎲 Seemingly endless Random Goats** - New goat GIF every 20 seconds, or click/tap for instant goat satisfaction
 - **📱 Mobile-Friendly** - Goats look great on any device
 - **🎃 Seasonal Fun** - Special holiday mascots appear during Halloween and Christmas
 - **⚡ Lightning Fast** - Smart preloading ensures smooth goat transitions
