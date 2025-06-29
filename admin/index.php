@@ -59,6 +59,20 @@ if (!file_exists($dataFile)) {
     file_put_contents($dataFile, '');
 }
 
+// Function to check if URL is a Giphy URL
+function isGiphyUrl($url)
+{
+    return (strpos(strtolower($url), 'giphy.com') !== false || strpos(strtolower($url), 'media.giphy.com') !== false);
+}
+
+// Function to generate hash-based ID from URL
+function generateUrlHash($url, $length = 12)
+{
+    // Create MD5 hash of the URL and take first N characters
+    $hash = md5(trim(strtolower($url)));
+    return substr($hash, 0, $length);
+}
+
 // Function to extract Giphy ID from URL
 function extractGiphyId($url)
 {
@@ -78,6 +92,86 @@ function extractGiphyId($url)
         $parts = explode('/', $url);
         return end($parts);
     }
+}
+
+// Function to download GIF from any URL
+function downloadGifFromUrl($url, $destinationPath)
+{
+    $url = trim($url);
+
+    // Validate URL format
+    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        return ['success' => false, 'error' => 'Invalid URL format.'];
+    }
+
+    // Initialize cURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_HEADER, false);
+    curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+
+    $gifData = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    // Check for cURL errors
+    if ($error) {
+        return ['success' => false, 'error' => "Network error: {$error}"];
+    }
+
+    // Check HTTP response code
+    if ($httpCode !== 200) {
+        return ['success' => false, 'error' => "HTTP error: {$httpCode}. Could not download from the provided URL."];
+    }
+
+    // Check if content type is appropriate (allow various image types that might be GIFs)
+    $allowedTypes = ['image/gif', 'image/webp', 'image/png', 'image/jpeg'];
+    $isValidContentType = false;
+    foreach ($allowedTypes as $type) {
+        if (strpos(strtolower($contentType), $type) !== false) {
+            $isValidContentType = true;
+            break;
+        }
+    }
+
+    // Verify we got actual GIF data by checking file signature
+    if (empty($gifData)) {
+        return ['success' => false, 'error' => "No data received from URL."];
+    }
+
+    // Check for GIF signature (GIF87a or GIF89a) or other image formats
+    $signature = substr($gifData, 0, 6);
+    $isGif = (substr($signature, 0, 3) === 'GIF');
+    $isPng = (substr($gifData, 0, 8) === "\x89PNG\x0D\x0A\x1A\x0A");
+    $isJpeg = (substr($gifData, 0, 3) === "\xFF\xD8\xFF");
+    $isWebp = (substr($gifData, 0, 4) === 'RIFF' && substr($gifData, 8, 4) === 'WEBP');
+
+    if (!$isGif && !$isPng && !$isJpeg && !$isWebp) {
+        return ['success' => false, 'error' => "File does not appear to be a valid image format. Please ensure the URL points directly to a GIF, PNG, JPEG, or WebP file."];
+    }
+
+    // Try to save the file
+    $result = file_put_contents($destinationPath, $gifData);
+
+    if ($result === false) {
+        return ['success' => false, 'error' => "Failed to save file to local directory."];
+    }
+
+    $fileType = $isGif ? 'GIF' : ($isPng ? 'PNG' : ($isJpeg ? 'JPEG' : 'WebP'));
+
+    return [
+        'success' => true,
+        'size' => $result,
+        'data' => $gifData,
+        'type' => $fileType
+    ];
 }
 
 // Function to download GIF from Giphy
@@ -357,73 +451,143 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
         switch ($_POST['action']) {
             case 'add':
-                $url = trim($_POST['giphy_url'] ?? '');
+                $url = trim($_POST['url'] ?? '');
                 if ($url) {
-                    $id = extractGiphyId($url);
-                    if ($id && !in_array($id, $goatIds)) {
-                        // Try to download the GIF first
-                        $gifPath = $goatsDir . $id . '.gif';
-                        $downloadResult = downloadGifFromGiphy($id, $gifPath);
+                    // Determine if this is a Giphy URL or direct URL
+                    if (isGiphyUrl($url)) {
+                        // Handle as Giphy URL
+                        $id = extractGiphyId($url);
+                        if ($id && !in_array($id, $goatIds)) {
+                            // Try to download the GIF from Giphy
+                            $gifPath = $goatsDir . $id . '.gif';
+                            $downloadResult = downloadGifFromGiphy($id, $gifPath);
 
-                        if ($downloadResult['success']) {
-                            // Add to local goats.txt
-                            $goatIds[] = $id;
-                            $localSaveSuccess = saveGoatIds($dataFile, $goatIds);
+                            if ($downloadResult['success']) {
+                                // Add to local goats.txt
+                                $goatIds[] = $id;
+                                $localSaveSuccess = saveGoatIds($dataFile, $goatIds);
 
-                            if ($localSaveSuccess) {
-                                $sizeKB = round($downloadResult['size'] / 1024, 1);
-                                $message = "Goat added locally! ID: {$id} (Size: {$sizeKB} KB)";
+                                if ($localSaveSuccess) {
+                                    $sizeKB = round($downloadResult['size'] / 1024, 1);
+                                    $message = "Giphy goat added locally! ID: {$id} (Size: {$sizeKB} KB)";
 
-                                // Try to commit to GitHub if configured
-                                if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
-                                    $githubResults = addGoatToGitHub(
-                                        $id,
-                                        $downloadResult['data'],
-                                        $goatIds,
-                                        $githubOwner,
-                                        $githubRepo,
-                                        $githubBranch,
-                                        $githubToken
-                                    );
+                                    // Try to commit to GitHub if configured
+                                    if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
+                                        $githubResults = addGoatToGitHub(
+                                            $id,
+                                            $downloadResult['data'],
+                                            $goatIds,
+                                            $githubOwner,
+                                            $githubRepo,
+                                            $githubBranch,
+                                            $githubToken
+                                        );
 
-                                    if ($githubResults['gif']['success'] && $githubResults['txt']['success']) {
-                                        $message .= " ✅ Successfully committed to GitHub!";
-                                        $messageType = 'success';
+                                        if ($githubResults['gif']['success'] && $githubResults['txt']['success']) {
+                                            $message .= " ✅ Successfully committed to GitHub!";
+                                            $messageType = 'success';
+                                        } else {
+                                            $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
+                                            if (!$githubResults['gif']['success']) {
+                                                $message .= "GIF upload failed (" . $githubResults['gif']['error'] . ") ";
+                                            }
+                                            if (!$githubResults['txt']['success']) {
+                                                $message .= "goats.txt update failed (" . $githubResults['txt']['error'] . ")";
+                                            }
+                                            $messageType = 'warning';
+                                        }
                                     } else {
-                                        $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
-                                        if (!$githubResults['gif']['success']) {
-                                            $message .= "GIF upload failed (" . $githubResults['gif']['error'] . ") ";
-                                        }
-                                        if (!$githubResults['txt']['success']) {
-                                            $message .= "goats.txt update failed (" . $githubResults['txt']['error'] . ")";
-                                        }
-                                        $messageType = 'warning';
+                                        $message .= " (GitHub sync disabled - missing configuration)";
+                                        $messageType = 'success';
                                     }
                                 } else {
-                                    $message .= " (GitHub sync disabled - missing configuration)";
-                                    $messageType = 'success';
+                                    // If saving to file failed, clean up the downloaded GIF
+                                    if (file_exists($gifPath)) {
+                                        unlink($gifPath);
+                                    }
+                                    $message = "Error saving goat to database file.";
+                                    $messageType = 'error';
                                 }
                             } else {
-                                // If saving to file failed, clean up the downloaded GIF
-                                if (file_exists($gifPath)) {
-                                    unlink($gifPath);
-                                }
-                                $message = "Error saving goat to database file.";
+                                $message = "Failed to download GIF from Giphy: " . $downloadResult['error'];
                                 $messageType = 'error';
                             }
+                        } elseif (in_array($id, $goatIds)) {
+                            $message = "This Giphy goat already exists in the gallery! ID: {$id}";
+                            $messageType = 'warning';
                         } else {
-                            $message = "Failed to download GIF: " . $downloadResult['error'];
+                            $message = "Invalid Giphy URL. Could not extract ID.";
                             $messageType = 'error';
                         }
-                    } elseif (in_array($id, $goatIds)) {
-                        $message = "This goat already exists in the gallery.";
-                        $messageType = 'warning';
                     } else {
-                        $message = "Invalid Giphy URL. Could not extract ID.";
-                        $messageType = 'error';
+                        // Handle as direct URL
+                        $urlHash = generateUrlHash($url, 12);
+                        $id = 'url-' . $urlHash;
+
+                        // Check if this URL has already been added
+                        if (in_array($id, $goatIds)) {
+                            $message = "This URL has already been added to the gallery! ID: {$id}";
+                            $messageType = 'warning';
+                        } else {
+                            // Try to download the file
+                            $gifPath = $goatsDir . $id . '.gif';
+                            $downloadResult = downloadGifFromUrl($url, $gifPath);
+
+                            if ($downloadResult['success']) {
+                                // Add to local goats.txt
+                                $goatIds[] = $id;
+                                $localSaveSuccess = saveGoatIds($dataFile, $goatIds);
+
+                                if ($localSaveSuccess) {
+                                    $sizeKB = round($downloadResult['size'] / 1024, 1);
+                                    $fileType = $downloadResult['type'] ?? 'Image';
+                                    $message = "Direct URL goat added locally! ID: {$id} (Size: {$sizeKB} KB, Type: {$fileType})";
+
+                                    // Try to commit to GitHub if configured
+                                    if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
+                                        $githubResults = addGoatToGitHub(
+                                            $id,
+                                            $downloadResult['data'],
+                                            $goatIds,
+                                            $githubOwner,
+                                            $githubRepo,
+                                            $githubBranch,
+                                            $githubToken
+                                        );
+
+                                        if ($githubResults['gif']['success'] && $githubResults['txt']['success']) {
+                                            $message .= " ✅ Successfully committed to GitHub!";
+                                            $messageType = 'success';
+                                        } else {
+                                            $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
+                                            if (!$githubResults['gif']['success']) {
+                                                $message .= "File upload failed (" . $githubResults['gif']['error'] . ") ";
+                                            }
+                                            if (!$githubResults['txt']['success']) {
+                                                $message .= "goats.txt update failed (" . $githubResults['txt']['error'] . ")";
+                                            }
+                                            $messageType = 'warning';
+                                        }
+                                    } else {
+                                        $message .= " (GitHub sync disabled - missing configuration)";
+                                        $messageType = 'success';
+                                    }
+                                } else {
+                                    // If saving to file failed, clean up the downloaded file
+                                    if (file_exists($gifPath)) {
+                                        unlink($gifPath);
+                                    }
+                                    $message = "Error saving goat to database file.";
+                                    $messageType = 'error';
+                                }
+                            } else {
+                                $message = "Failed to download file: " . $downloadResult['error'];
+                                $messageType = 'error';
+                            }
+                        }
                     }
                 } else {
-                    $message = "Please enter a Giphy URL.";
+                    $message = "Please enter a URL.";
                     $messageType = 'error';
                 }
                 break;
@@ -1811,19 +1975,20 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             <div class="controls">
                 <div class="controls-grid">
                     <div class="control-section">
-                        <h3>Add Goat</h3>
+                        <h3>Add Goat from URL</h3>
                         <form method="POST" id="addGoatForm">
                             <input type="hidden" name="action" value="add">
                             <div class="form-content">
                                 <div class="form-group">
-                                    <label for="giphy_url">Giphy URL:</label>
-                                    <input type="url" id="giphy_url" name="giphy_url"
-                                        placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
+                                    <label for="url">Image URL:</label>
+                                    <input type="url" id="url" name="url" placeholder="Giphy URL or direct GIF URL"
+                                        required>
                                     <small
                                         style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                                        📥 GIF will be downloaded locally
+                                        🔗 <strong>Giphy:</strong> Uses Giphy ID (e.g., cMso9wDwqSy3e)<br>
+                                        🌐 <strong>Direct:</strong> Uses URL hash (prevents duplicates)<br>
                                         <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
-                                            and synced to GitHub
+                                            + GitHub sync
                                         <?php endif; ?>
                                     </small>
                                 </div>
@@ -1833,7 +1998,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                     <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
                                         📥 Add & Sync to GitHub
                                     <?php else: ?>
-                                        📥 Add Local
+                                        📥 Add Goat
                                     <?php endif; ?>
                                 </button>
                             </div>
@@ -1848,6 +2013,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                     <label for="search">Search by Goat ID:</label>
                                     <input type="text" id="search" name="search" placeholder="Enter part of goat ID..."
                                         value="<?php echo htmlspecialchars($search); ?>">
+                                    <small
+                                        style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
+                                        🔍 Search Giphy IDs or url-HASH patterns
+                                    </small>
                                 </div>
                             </div>
                             <div class="form-buttons">
@@ -1869,9 +2038,10 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <p><a href="?" style="color: var(--accent-primary);">Clear search</a> to see all goats</p>
                     <?php else: ?>
                         <h3>No goats found</h3>
-                        <p>Add some goats using the form above!</p>
-                        <p style="font-size: 13px; margin-top: 10px;">🔗 Paste a Giphy URL and the GIF will be downloaded
-                            automatically</p>
+                        <p>Add some goats using the forms above!</p>
+                        <p style="font-size: 13px; margin-top: 10px;">🔗 Add from Giphy or any direct GIF URL</p>
+                        <p style="font-size: 13px;">📥 Images are downloaded and stored locally</p>
+                        <p style="font-size: 13px;">🔗 URL-based IDs prevent duplicate imports</p>
                         <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
                             <p style="font-size: 13px;">🚀 Files will be synced to GitHub repository</p>
                         <?php endif; ?>
@@ -1903,7 +2073,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                     data-goat-id="<?php echo htmlspecialchars($goatId); ?>">
                             </div>
                             <div class="goat-info">
-                                <div class="goat-id">ID: <?php echo htmlspecialchars($goatId); ?></div>
+                                <div class="goat-id">
+                                    ID: <?php echo htmlspecialchars($goatId); ?>
+                                    <?php if (strpos($goatId, 'url-') === 0): ?>
+                                        <br><small style="color: var(--text-muted); font-size: 10px;">Direct URL Import</small>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="goat-actions">
                                     <div class="goat-links">
                                         <a href="https://randomgoat.com?id=<?php echo htmlspecialchars($goatId); ?>" target="_blank"
@@ -2214,7 +2389,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             const originalText = btn.innerHTML;
 
             btn.classList.add('loading');
-            btn.innerHTML = '<?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? "Syncing to GitHub..." : "Downloading..."; ?>';
+            btn.innerHTML = '<?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? "Processing & Syncing..." : "Processing..."; ?>';
             btn.disabled = true;
 
             // Reset button state if form submission fails or returns to page
