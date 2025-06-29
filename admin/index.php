@@ -13,6 +13,12 @@ $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $adminUsername = $_ENV['ADMIN_USERNAME'] ?? getenv('ADMIN_USERNAME');
 $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? getenv('ADMIN_PASSWORD');
 
+// GitHub configuration from environment variables
+$githubToken = $_ENV['GITHUB_TOKEN'] ?? getenv('GITHUB_TOKEN');
+$githubOwner = $_ENV['GITHUB_OWNER'] ?? getenv('GITHUB_OWNER');
+$githubRepo = $_ENV['GITHUB_REPO'] ?? getenv('GITHUB_REPO');
+$githubBranch = $_ENV['GITHUB_BRANCH'] ?? getenv('GITHUB_BRANCH') ?? 'main';
+
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 
@@ -116,7 +122,171 @@ function downloadGifFromGiphy($giphyId, $destinationPath)
         return ['success' => false, 'error' => "Failed to save GIF to local directory."];
     }
 
-    return ['success' => true, 'size' => $result];
+    return ['success' => true, 'size' => $result, 'data' => $gifData];
+}
+
+// GitHub API Functions
+function githubApiRequest($endpoint, $method = 'GET', $data = null, $token = null)
+{
+    $ch = curl_init();
+    
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://api.github.com{$endpoint}",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER => [
+            'Accept: application/vnd.github.v3+json',
+            'User-Agent: Random-Goat-Admin/1.0',
+            $token ? "Authorization: token {$token}" : ''
+        ],
+        CURLOPT_CUSTOMREQUEST => $method,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_TIMEOUT => 30
+    ]);
+    
+    if ($data && ($method === 'POST' || $method === 'PUT')) {
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge(
+            curl_getinfo($ch, CURLINFO_HEADER_OUT) ? [] : [
+                'Accept: application/vnd.github.v3+json',
+                'User-Agent: Random-Goat-Admin/1.0',
+                'Content-Type: application/json',
+                $token ? "Authorization: token {$token}" : ''
+            ]
+        ));
+    }
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($error) {
+        return ['success' => false, 'error' => "cURL error: {$error}"];
+    }
+    
+    $decoded = json_decode($response, true);
+    
+    if ($httpCode >= 200 && $httpCode < 300) {
+        return ['success' => true, 'data' => $decoded];
+    } else {
+        $errorMsg = $decoded['message'] ?? "HTTP {$httpCode}";
+        return ['success' => false, 'error' => $errorMsg, 'http_code' => $httpCode];
+    }
+}
+
+function getFileFromGitHub($owner, $repo, $path, $branch, $token)
+{
+    $endpoint = "/repos/{$owner}/{$repo}/contents/{$path}?ref={$branch}";
+    return githubApiRequest($endpoint, 'GET', null, $token);
+}
+
+function commitFileToGitHub($owner, $repo, $path, $content, $message, $branch, $token, $sha = null)
+{
+    $endpoint = "/repos/{$owner}/{$repo}/contents/{$path}";
+    
+    $data = [
+        'message' => $message,
+        'content' => base64_encode($content),
+        'branch' => $branch
+    ];
+    
+    if ($sha) {
+        $data['sha'] = $sha;
+    }
+    
+    return githubApiRequest($endpoint, 'PUT', $data, $token);
+}
+
+function addGoatToGitHub($goatId, $gifData, $goatIds, $githubOwner, $githubRepo, $githubBranch, $githubToken)
+{
+    $results = ['gif' => null, 'txt' => null];
+    
+    // 1. Commit the GIF file
+    $gifPath = "goats/{$goatId}.gif";
+    $gifResult = commitFileToGitHub(
+        $githubOwner,
+        $githubRepo,
+        $gifPath,
+        $gifData,
+        "Add goat GIF: {$goatId}",
+        $githubBranch,
+        $githubToken
+    );
+    
+    $results['gif'] = $gifResult;
+    
+    if (!$gifResult['success']) {
+        return $results;
+    }
+    
+    // 2. Get current goats.txt file to get its SHA
+    $txtPath = "data/goats.txt";
+    $currentFile = getFileFromGitHub($githubOwner, $githubRepo, $txtPath, $githubBranch, $githubToken);
+    
+    $currentSha = null;
+    if ($currentFile['success'] && isset($currentFile['data']['sha'])) {
+        $currentSha = $currentFile['data']['sha'];
+    }
+    
+    // 3. Commit the updated goats.txt
+    $txtContent = implode("\n", array_unique(array_filter($goatIds)));
+    $txtResult = commitFileToGitHub(
+        $githubOwner,
+        $githubRepo,
+        $txtPath,
+        $txtContent,
+        "Add goat to list: {$goatId}",
+        $githubBranch,
+        $githubToken,
+        $currentSha
+    );
+    
+    $results['txt'] = $txtResult;
+    
+    return $results;
+}
+
+function deleteGoatFromGitHub($goatId, $goatIds, $githubOwner, $githubRepo, $githubBranch, $githubToken)
+{
+    $results = ['gif' => null, 'txt' => null];
+    
+    // 1. Delete the GIF file
+    $gifPath = "goats/{$goatId}.gif";
+    $gifFile = getFileFromGitHub($githubOwner, $githubRepo, $gifPath, $githubBranch, $githubToken);
+    
+    if ($gifFile['success'] && isset($gifFile['data']['sha'])) {
+        $deleteData = [
+            'message' => "Delete goat GIF: {$goatId}",
+            'sha' => $gifFile['data']['sha'],
+            'branch' => $githubBranch
+        ];
+        
+        $results['gif'] = githubApiRequest("/repos/{$githubOwner}/{$githubRepo}/contents/{$gifPath}", 'DELETE', $deleteData, $githubToken);
+    } else {
+        $results['gif'] = ['success' => false, 'error' => 'GIF file not found in repository'];
+    }
+    
+    // 2. Update goats.txt
+    $txtPath = "data/goats.txt";
+    $currentFile = getFileFromGitHub($githubOwner, $githubRepo, $txtPath, $githubBranch, $githubToken);
+    
+    if ($currentFile['success'] && isset($currentFile['data']['sha'])) {
+        $txtContent = implode("\n", array_unique(array_filter($goatIds)));
+        $results['txt'] = commitFileToGitHub(
+            $githubOwner,
+            $githubRepo,
+            $txtPath,
+            $txtContent,
+            "Remove goat from list: {$goatId}",
+            $githubBranch,
+            $githubToken,
+            $currentFile['data']['sha']
+        );
+    } else {
+        $results['txt'] = ['success' => false, 'error' => 'goats.txt file not found in repository'];
+    }
+    
+    return $results;
 }
 
 // Function to read goat IDs
@@ -147,6 +317,15 @@ function deleteGoatFiles($goatId, $goatsDir)
     return true; // If file doesn't exist, consider it successfully "deleted"
 }
 
+// Check GitHub configuration
+function checkGitHubConfig($githubToken, $githubOwner, $githubRepo)
+{
+    if (empty($githubToken) || empty($githubOwner) || empty($githubRepo)) {
+        return false;
+    }
+    return true;
+}
+
 // Handle form submissions (only if logged in)
 $message = '';
 $messageType = '';
@@ -166,12 +345,43 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         $downloadResult = downloadGifFromGiphy($id, $gifPath);
 
                         if ($downloadResult['success']) {
-                            // If download successful, add to goats.txt
+                            // Add to local goats.txt
                             $goatIds[] = $id;
-                            if (saveGoatIds($dataFile, $goatIds)) {
+                            $localSaveSuccess = saveGoatIds($dataFile, $goatIds);
+                            
+                            if ($localSaveSuccess) {
                                 $sizeKB = round($downloadResult['size'] / 1024, 1);
-                                $message = "Goat added successfully! ID: {$id} (Size: {$sizeKB} KB)";
-                                $messageType = 'success';
+                                $message = "Goat added locally! ID: {$id} (Size: {$sizeKB} KB)";
+                                
+                                // Try to commit to GitHub if configured
+                                if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
+                                    $githubResults = addGoatToGitHub(
+                                        $id, 
+                                        $downloadResult['data'], 
+                                        $goatIds, 
+                                        $githubOwner, 
+                                        $githubRepo, 
+                                        $githubBranch, 
+                                        $githubToken
+                                    );
+                                    
+                                    if ($githubResults['gif']['success'] && $githubResults['txt']['success']) {
+                                        $message .= " ✅ Successfully committed to GitHub!";
+                                        $messageType = 'success';
+                                    } else {
+                                        $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
+                                        if (!$githubResults['gif']['success']) {
+                                            $message .= "GIF upload failed (" . $githubResults['gif']['error'] . ") ";
+                                        }
+                                        if (!$githubResults['txt']['success']) {
+                                            $message .= "goats.txt update failed (" . $githubResults['txt']['error'] . ")";
+                                        }
+                                        $messageType = 'warning';
+                                    }
+                                } else {
+                                    $message .= " (GitHub sync disabled - missing configuration)";
+                                    $messageType = 'success';
+                                }
                             } else {
                                 // If saving to file failed, clean up the downloaded GIF
                                 if (file_exists($gifPath)) {
@@ -200,17 +410,48 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
             case 'delete':
                 $idToDelete = $_POST['goat_id'] ?? '';
                 if ($idToDelete && in_array($idToDelete, $goatIds)) {
-                    // Remove from goats.txt
+                    // Remove from local goats.txt
                     $goatIds = array_diff($goatIds, [$idToDelete]);
-                    if (saveGoatIds($dataFile, $goatIds)) {
-                        // Also delete the GIF file
+                    $localSaveSuccess = saveGoatIds($dataFile, $goatIds);
+                    
+                    if ($localSaveSuccess) {
+                        // Delete local GIF file
                         $deleteFileResult = deleteGoatFiles($idToDelete, $goatsDir);
-                        if ($deleteFileResult) {
-                            $message = "Goat deleted successfully! (ID and GIF file removed)";
+                        
+                        $message = "Goat deleted locally!";
+                        
+                        // Try to delete from GitHub if configured
+                        if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
+                            $githubResults = deleteGoatFromGitHub(
+                                $idToDelete, 
+                                $goatIds, 
+                                $githubOwner, 
+                                $githubRepo, 
+                                $githubBranch, 
+                                $githubToken
+                            );
+                            
+                            if ($githubResults['gif']['success'] && $githubResults['txt']['success']) {
+                                $message .= " ✅ Successfully removed from GitHub!";
+                                $messageType = 'success';
+                            } else {
+                                $message .= " ⚠️ Local deletion successful, but GitHub sync failed: ";
+                                if (!$githubResults['gif']['success']) {
+                                    $message .= "GIF deletion failed (" . $githubResults['gif']['error'] . ") ";
+                                }
+                                if (!$githubResults['txt']['success']) {
+                                    $message .= "goats.txt update failed (" . $githubResults['txt']['error'] . ")";
+                                }
+                                $messageType = 'warning';
+                            }
                         } else {
-                            $message = "Goat removed from database, but GIF file could not be deleted.";
+                            $message .= " (GitHub sync disabled - missing configuration)";
+                            $messageType = 'success';
                         }
-                        $messageType = 'success';
+                        
+                        if (!$deleteFileResult) {
+                            $message .= " Note: Local GIF file could not be deleted.";
+                        }
                     } else {
                         $message = "Error deleting goat from file.";
                         $messageType = 'error';
@@ -318,6 +559,29 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         .stats {
             color: var(--text-secondary);
             font-size: 14px;
+        }
+
+        .github-status {
+            margin-top: 8px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .github-status.enabled {
+            background: rgba(5, 150, 105, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(5, 150, 105, 0.3);
+        }
+
+        .github-status.disabled {
+            background: rgba(217, 119, 6, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(217, 119, 6, 0.3);
         }
 
         .logout-btn {
@@ -1005,13 +1269,17 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 backdrop-filter: blur(10px);
                 border: none;
                 border-bottom: 1px solid var(--border);
-                flex-direction: row;
-                align-items: flex-start;
-                justify-content: space-between;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: 12px;
             }
 
-            .header-content {
+            .header .header-content {
                 flex: 1;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
             }
 
             .header-content h1 {
@@ -1024,6 +1292,12 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                 text-align: left;
                 font-size: 13px;
                 margin-bottom: 0;
+            }
+
+            .github-status {
+                margin-top: 6px;
+                font-size: 10px;
+                padding: 4px 8px;
             }
 
             .logout-btn {
@@ -1465,18 +1739,29 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
         <div class="container">
             <div class="header">
                 <div class="header-content">
-                    <h1>🐐 Random Goat Admin</h1>
-                    <div class="stats">
-                        <?php if ($search): ?>
-                            Search: "<?php echo htmlspecialchars($search); ?>" -
-                            <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
-                        <?php else: ?>
-                            Total Goats: <?php echo count($allGoatIds); ?> |
-                        <?php endif; ?>
-                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <h1>🐐 Random Goat Admin</h1>
+                            <div class="stats">
+                                <?php if ($search): ?>
+                                    Search: "<?php echo htmlspecialchars($search); ?>" -
+                                    <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
+                                <?php else: ?>
+                                    Total Goats: <?php echo count($allGoatIds); ?> |
+                                <?php endif; ?>
+                                Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                            </div>
+                            <div class="github-status <?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? 'enabled' : 'disabled'; ?>">
+                                <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                                    ✅ GitHub Sync: <?php echo htmlspecialchars($githubOwner . '/' . $githubRepo); ?>
+                                <?php else: ?>
+                                    ⚠️ GitHub Sync: Disabled
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <a href="?logout=1" class="logout-btn">Logout</a>
                     </div>
                 </div>
-                <a href="?logout=1" class="logout-btn">Logout</a>
             </div>
 
             <?php if ($message): ?>
@@ -1498,12 +1783,21 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                                         placeholder="https://giphy.com/gifs/tongue-goat-cMso9wDwqSy3e" required>
                                     <small
                                         style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                                        📥 GIF will be downloaded and stored locally
+                                        📥 GIF will be downloaded locally 
+                                        <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                                            and synced to GitHub
+                                        <?php endif; ?>
                                     </small>
                                 </div>
                             </div>
                             <div class="form-buttons">
-                                <button type="submit" class="btn success" id="addGoatBtn">📥 Add & Download</button>
+                                <button type="submit" class="btn success" id="addGoatBtn">
+                                    <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                                        📥 Add & Sync to GitHub
+                                    <?php else: ?>
+                                        📥 Add Local
+                                    <?php endif; ?>
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -1540,6 +1834,9 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
                         <p>Add some goats using the form above!</p>
                         <p style="font-size: 13px; margin-top: 10px;">🔗 Paste a Giphy URL and the GIF will be downloaded
                             automatically</p>
+                        <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                            <p style="font-size: 13px;">🚀 Files will be synced to GitHub repository</p>
+                        <?php endif; ?>
                     <?php endif; ?>
                 </div>
             <?php else: ?>
@@ -1655,12 +1952,16 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>Delete Goat</h2>
-                    <p>Are you sure you want to delete this goat? This will remove both the database entry and the GIF file.
-                        This action cannot be undone.</p>
+                    <p>Are you sure you want to delete this goat? This will remove both the database entry and the GIF file
+                        <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                            from local storage and GitHub
+                        <?php endif; ?>. This action cannot be undone.</p>
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
-                    <button type="button" class="btn danger" onclick="confirmDelete()">🗑️ Delete</button>
+                    <button type="button" class="btn danger" onclick="confirmDelete()">
+                        🗑️ Delete<?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?> & Sync<?php endif; ?>
+                    </button>
                 </div>
             </div>
         </div>
@@ -1875,7 +2176,7 @@ $currentGoats = array_slice($filteredGoatIds, $offset, $perPage);
             const originalText = btn.innerHTML;
 
             btn.classList.add('loading');
-            btn.innerHTML = 'Downloading...';
+            btn.innerHTML = '<?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? "Syncing to GitHub..." : "Downloading..."; ?>';
             btn.disabled = true;
 
             // Reset button state if form submission fails or returns to page
