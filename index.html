@@ -768,6 +768,7 @@
         class OptimizedGoatGifApp {
             constructor() {
                 this.gifIds = [];
+                this.goatsData = []; // Store full goat objects for future use
                 this.currentGifIndex = -1;
                 this.timer = null;
                 this.countdown = 20;
@@ -1030,30 +1031,65 @@
 
             async loadGifIds() {
                 try {
-                    const response = await fetch('data/goats.txt');
+                    const response = await fetch('data/goats.json');
                     if (!response.ok) throw new Error('File not found');
 
-                    const text = await response.text();
-                    this.gifIds = text.split('\n')
-                        .map(line => line.trim())
-                        .filter(line => line.length > 0);
+                    const data = await response.json();
 
-                    if (this.gifIds.length === 0) throw new Error('No gif IDs found');
+                    // Validate JSON structure
+                    if (!Array.isArray(data)) {
+                        throw new Error('Invalid JSON format - expected array');
+                    }
+
+                    // Store full goat data and extract IDs
+                    this.goatsData = data.filter(goat =>
+                        goat &&
+                        typeof goat === 'object' &&
+                        typeof goat.id === 'string' &&
+                        goat.id.trim().length > 0
+                    );
+
+                    this.gifIds = this.goatsData.map(goat => goat.id.trim());
+
+                    if (this.gifIds.length === 0) throw new Error('No valid goat IDs found in JSON');
+
+                    console.log(`Loaded ${this.gifIds.length} goat gifs from JSON!`);
+
+                    // Log sample data for debugging
+                    if (this.goatsData.length > 0) {
+                        console.log('Sample goat data:', this.goatsData[0]);
+                    }
+
                 } catch (error) {
-                    console.log('Using fallback gif IDs...');
-                    this.gifIds = [
-                        'i2KjyMsyb2L3G',
-                        '6qbvtoTgXyoy4',
-                        '3bjpYEM2wLeqQ',
+                    console.log('JSON loading failed, using fallback gif IDs...', error.message);
+
+                    // Fallback data in JSON format
+                    this.goatsData = [
+                        { "id": "i2KjyMsyb2L3G", "tags": [] },
+                        { "id": "6qbvtoTgXyoy4", "tags": [] },
+                        { "id": "3bjpYEM2wLeqQ", "tags": [] }
                     ];
+                    this.gifIds = this.goatsData.map(goat => goat.id);
                 }
 
                 // Adjust preloading based on available GIFs
                 if (this.gifIds.length < 10) {
                     this.preloadConfig.background = Math.min(2, Math.floor(this.gifIds.length / 2));
                 }
+            }
 
-                console.log(`Loaded ${this.gifIds.length} goat gifs!`);
+            // Helper method to get goat data by ID (for future use with tags)
+            getGoatData(gifId) {
+                return this.goatsData.find(goat => goat.id === gifId);
+            }
+
+            // Helper method to filter goats by tags (for future implementation)
+            getGoatsByTags(tags) {
+                if (!tags || tags.length === 0) return this.goatsData;
+
+                return this.goatsData.filter(goat =>
+                    goat.tags && goat.tags.some(tag => tags.includes(tag))
+                );
             }
 
             hideSplashScreen() {
