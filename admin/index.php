@@ -365,6 +365,31 @@ function addGoatToGitHub($goatId, $gifData, $goatsData, $githubOwner, $githubRep
     return $results;
 }
 
+function updateGoatTagsOnGitHub($goatsData, $githubOwner, $githubRepo, $githubBranch, $githubToken, $goatId)
+{
+    // Get current goats.json file to get its SHA
+    $jsonPath = "data/goats.json";
+    $currentFile = getFileFromGitHub($githubOwner, $githubRepo, $jsonPath, $githubBranch, $githubToken);
+
+    $currentSha = null;
+    if ($currentFile['success'] && isset($currentFile['data']['sha'])) {
+        $currentSha = $currentFile['data']['sha'];
+    }
+
+    // Commit the updated goats.json
+    $jsonContent = json_encode($goatsData, JSON_PRETTY_PRINT);
+    return commitFileToGitHub(
+        $githubOwner,
+        $githubRepo,
+        $jsonPath,
+        $jsonContent,
+        "Update tags for goat: {$goatId}",
+        $githubBranch,
+        $githubToken,
+        $currentSha
+    );
+}
+
 function deleteGoatFromGitHub($goatId, $goatsData, $githubOwner, $githubRepo, $githubBranch, $githubToken)
 {
     $results = ['gif' => null, 'json' => null];
@@ -640,6 +665,56 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 } else {
                     $message = "Please enter a URL.";
+                    $messageType = 'error';
+                }
+                break;
+
+            case 'update_tags':
+                $idToUpdate = $_POST['goat_id'] ?? '';
+                $tagsString = trim($_POST['tags'] ?? '');
+                $newTags = parseTags($tagsString);
+                $goatIndex = findGoatById($goatsData, $idToUpdate);
+
+                if ($goatIndex !== false) {
+                    // Update tags in local goats.json
+                    $oldTags = $goatsData[$goatIndex]['tags'];
+                    $goatsData[$goatIndex]['tags'] = $newTags;
+                    $localSaveSuccess = saveGoatsData($dataFile, $goatsData);
+
+                    if ($localSaveSuccess) {
+                        $tagsText = !empty($newTags) ? implode(', ', $newTags) : 'none';
+                        $message = "Tags updated locally! New tags: {$tagsText}";
+
+                        // Try to update on GitHub if configured
+                        if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
+                            $githubResult = updateGoatTagsOnGitHub(
+                                $goatsData,
+                                $githubOwner,
+                                $githubRepo,
+                                $githubBranch,
+                                $githubToken,
+                                $idToUpdate
+                            );
+
+                            if ($githubResult['success']) {
+                                $message .= " ✅ Successfully synced to GitHub!";
+                                $messageType = 'success';
+                            } else {
+                                $message .= " ⚠️ Local update successful, but GitHub sync failed: " . $githubResult['error'];
+                                $messageType = 'warning';
+                            }
+                        } else {
+                            $message .= " (GitHub sync disabled - missing configuration)";
+                            $messageType = 'success';
+                        }
+                    } else {
+                        // Revert the changes if save failed
+                        $goatsData[$goatIndex]['tags'] = $oldTags;
+                        $message = "Error updating tags in database file.";
+                        $messageType = 'error';
+                    }
+                } else {
+                    $message = "Goat not found.";
                     $messageType = 'error';
                 }
                 break;
@@ -1264,6 +1339,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             justify-content: space-between;
             align-items: center;
             margin-top: auto;
+            gap: 8px;
         }
 
         .goat-links {
@@ -1296,6 +1372,22 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             background: var(--accent-hover);
             transform: translateY(-1px);
             box-shadow: 0 3px 6px rgba(91, 33, 182, 0.4);
+        }
+
+        .goat-action-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-width: auto;
+            min-height: 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            white-space: nowrap;
         }
 
         /* Custom Tooltip Styles */
@@ -1445,7 +1537,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             border-radius: 16px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
             border: 1px solid var(--border);
-            max-width: 400px;
+            max-width: 500px;
             width: 90%;
             animation: slideIn 0.3s ease-out;
         }
@@ -1477,6 +1569,117 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             font-size: 14px;
             margin-top: 12px;
             text-align: center;
+        }
+
+        /* Edit Tags Modal Specific Styles */
+        .edit-tags-modal .modal-content {
+            max-width: 600px;
+        }
+
+        .current-tags-container {
+            margin-bottom: 20px;
+        }
+
+        .current-tags-container h4 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .current-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+            min-height: 32px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .current-tags.empty {
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-style: italic;
+            font-size: 14px;
+        }
+
+        .editable-tag {
+            display: inline-flex;
+            align-items: center;
+            background: var(--accent-primary);
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            gap: 6px;
+            text-transform: lowercase;
+            animation: tagFadeIn 0.2s ease-out;
+        }
+
+        .remove-tag-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #ffffff;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            transition: background 0.2s ease;
+            line-height: 1;
+        }
+
+        .remove-tag-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .add-tags-container {
+            margin-bottom: 20px;
+        }
+
+        .add-tags-container h4 {
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #newTagsInput {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        #newTagsInput:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
+        }
+
+        @keyframes tagFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         /* Loading state for Add Goat button */
@@ -1726,11 +1929,13 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             .goat-actions {
                 align-items: center;
-                gap: 12px;
+                gap: 8px;
+                flex-direction: column;
             }
 
             .goat-links {
-                flex: 1;
+                align-self: stretch;
+                justify-content: center;
             }
 
             .goat-link {
@@ -1741,12 +1946,17 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 touch-action: manipulation;
             }
 
-            .goat-actions .btn {
-                width: auto;
-                min-width: 80px;
-                padding: 12px 16px;
-                font-size: 14px;
-                min-height: 44px;
+            .goat-action-buttons {
+                align-self: stretch;
+                justify-content: space-between;
+            }
+
+            .goat-action-buttons .btn {
+                flex: 1;
+                min-width: auto;
+                padding: 10px 8px;
+                font-size: 12px;
+                min-height: 40px;
             }
 
             /* Mobile pagination */
@@ -1851,6 +2061,33 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 background: rgba(220, 38, 38, 0.1);
                 border-radius: 8px;
                 border: 1px solid var(--error);
+            }
+
+            /* Edit tags modal mobile optimization */
+            .edit-tags-modal .modal-content {
+                max-width: none;
+            }
+
+            .current-tags {
+                min-height: 40px;
+                padding: 8px;
+            }
+
+            .editable-tag {
+                font-size: 10px;
+                padding: 3px 6px;
+                gap: 4px;
+            }
+
+            .remove-tag-btn {
+                width: 14px;
+                height: 14px;
+                font-size: 10px;
+            }
+
+            #newTagsInput {
+                padding: 16px;
+                font-size: 16px;
             }
 
             /* Safe area adjustments for notched devices */
@@ -2196,10 +2433,16 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                             target="_blank" class="goat-link randomgoat tooltip"
                                             data-tooltip="View on Random Goat">🐐</a>
                                     </div>
-                                    <button type="button" class="btn danger"
-                                        onclick="showDeleteModal('<?php echo htmlspecialchars($goat['id']); ?>')">
-                                        🗑️ Delete
-                                    </button>
+                                    <div class="goat-action-buttons">
+                                        <button type="button" class="btn warning btn-small"
+                                            onclick="showEditTagsModal('<?php echo htmlspecialchars($goat['id']); ?>', <?php echo htmlspecialchars(json_encode($goat['tags'])); ?>)">
+                                            🏷️ Tags
+                                        </button>
+                                        <button type="button" class="btn danger btn-small"
+                                            onclick="showDeleteModal('<?php echo htmlspecialchars($goat['id']); ?>')">
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -2289,15 +2532,55 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             </div>
         </div>
 
+        <!-- Edit Tags Modal -->
+        <div id="editTagsModal" class="modal edit-tags-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🏷️ Edit Tags</h2>
+                    <p>Manage tags for goat: <strong id="editTagsGoatId"></strong></p>
+                </div>
+
+                <div class="current-tags-container">
+                    <h4>Current Tags:</h4>
+                    <div id="currentTags" class="current-tags"></div>
+                </div>
+
+                <div class="add-tags-container">
+                    <h4>Add New Tags:</h4>
+                    <input type="text" id="newTagsInput" placeholder="Enter new tags (comma-separated)">
+                    <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
+                        💡 Type tags and press Enter or comma to add them
+                    </small>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="hideEditTagsModal()">Cancel</button>
+                    <button type="button" class="btn success" onclick="saveTagChanges()">
+                        💾 Save Tags<?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?> &
+                            Sync<?php endif; ?>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Hidden form for deletion -->
         <form id="deleteForm" method="POST" style="display: none;">
             <input type="hidden" name="action" value="delete">
             <input type="hidden" name="goat_id" id="deleteGoatId">
         </form>
+
+        <!-- Hidden form for tag updates -->
+        <form id="updateTagsForm" method="POST" style="display: none;">
+            <input type="hidden" name="action" value="update_tags">
+            <input type="hidden" name="goat_id" id="updateTagsGoatId">
+            <input type="hidden" name="tags" id="updateTagsValue">
+        </form>
     <?php endif; ?>
 
     <script>
         let goatToDelete = '';
+        let currentEditingGoatId = '';
+        let currentTags = [];
 
         // Enhanced Lazy Loading with Intersection Observer
         class LazyImageLoader {
@@ -2459,6 +2742,123 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         });
 
+        // Tag editing functions
+        function showEditTagsModal(goatId, tags) {
+            currentEditingGoatId = goatId;
+            currentTags = [...tags]; // Clone the array
+
+            document.getElementById('editTagsGoatId').textContent = goatId;
+            document.getElementById('editTagsModal').classList.add('show');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+
+            updateCurrentTagsDisplay();
+            document.getElementById('newTagsInput').value = '';
+            document.getElementById('newTagsInput').focus();
+        }
+
+        function hideEditTagsModal() {
+            document.getElementById('editTagsModal').classList.remove('show');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            currentEditingGoatId = '';
+            currentTags = [];
+        }
+
+        function updateCurrentTagsDisplay() {
+            const container = document.getElementById('currentTags');
+
+            if (currentTags.length === 0) {
+                container.className = 'current-tags empty';
+                container.innerHTML = 'No tags assigned';
+                return;
+            }
+
+            container.className = 'current-tags';
+            container.innerHTML = '';
+
+            currentTags.forEach((tag, index) => {
+                const tagElement = document.createElement('div');
+                tagElement.className = 'editable-tag';
+                tagElement.innerHTML = `
+                    ${tag}
+                    <button type="button" class="remove-tag-btn" onclick="removeTag(${index})" title="Remove tag">×</button>
+                `;
+                container.appendChild(tagElement);
+            });
+        }
+
+        function removeTag(index) {
+            if (index >= 0 && index < currentTags.length) {
+                currentTags.splice(index, 1);
+                updateCurrentTagsDisplay();
+            }
+        }
+
+        function addTag(tagText) {
+            const tag = tagText.trim().toLowerCase();
+            if (tag && !currentTags.includes(tag)) {
+                currentTags.push(tag);
+                updateCurrentTagsDisplay();
+                return true;
+            }
+            return false;
+        }
+
+        function saveTagChanges() {
+            document.getElementById('updateTagsGoatId').value = currentEditingGoatId;
+            document.getElementById('updateTagsValue').value = currentTags.join(', ');
+            document.getElementById('updateTagsForm').submit();
+        }
+
+        // Handle tag input events
+        document.addEventListener('DOMContentLoaded', function () {
+            const tagInput = document.getElementById('newTagsInput');
+
+            if (tagInput) {
+                // Handle Enter key and comma input
+                tagInput.addEventListener('keydown', function (e) {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const tagText = this.value.trim();
+                        if (tagText) {
+                            if (addTag(tagText)) {
+                                this.value = '';
+                            }
+                        }
+                    }
+                });
+
+                // Handle pasting multiple tags
+                tagInput.addEventListener('paste', function (e) {
+                    setTimeout(() => {
+                        const pastedText = this.value;
+                        const tags = pastedText.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+                        if (tags.length > 1) {
+                            this.value = '';
+                            let addedCount = 0;
+                            tags.forEach(tag => {
+                                if (addTag(tag)) {
+                                    addedCount++;
+                                }
+                            });
+                        }
+                    }, 10);
+                });
+
+                // Handle blur event to add remaining text as tag
+                tagInput.addEventListener('blur', function () {
+                    const tagText = this.value.trim();
+                    if (tagText) {
+                        if (addTag(tagText)) {
+                            this.value = '';
+                        }
+                    }
+                });
+            }
+        });
+
         // Existing modal and form functions
         function showDeleteModal(goatId) {
             goatToDelete = goatId;
@@ -2488,10 +2888,18 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         });
 
+        // Close edit tags modal when clicking outside
+        document.getElementById('editTagsModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                hideEditTagsModal();
+            }
+        });
+
         // Close modal with Escape key
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
                 hideDeleteModal();
+                hideEditTagsModal();
             }
         });
 
