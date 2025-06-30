@@ -774,6 +774,7 @@
                 this.countdown = 20;
                 this.isLoading = false;
                 this.currentLayer = 1;
+                this.fallbackGifId = 'XdACBmg3lx6RG'; // Fallback gif ID
 
                 // Enhanced preloading system
                 this.preloadCache = new Map();
@@ -982,7 +983,7 @@
                     if (!gifId) throw new Error('No gif ID available');
 
                     const startTime = Date.now();
-                    await this.loadGifToLayer(gifId, this.elements.layer1);
+                    await this.loadGifToLayerWithFallback(gifId, this.elements.layer1);
 
                     // Track performance
                     const loadTime = Date.now() - startTime;
@@ -1157,7 +1158,7 @@
                 return selectedId;
             }
 
-            // Enhanced preloading with priority system
+            // Enhanced preloading with priority system and fallback
             async preloadGif(gifId, priority = 'background') {
                 if (this.preloadCache.has(gifId)) {
                     return this.preloadCache.get(gifId);
@@ -1195,7 +1196,30 @@
                     img.onerror = () => {
                         this.performance.failureRate += 0.05;
                         this.activePreloads.delete(gifId);
-                        reject(new Error(`Failed to preload gif: ${gifId}`));
+
+                        // Try fallback gif if original fails
+                        if (gifId !== this.fallbackGifId) {
+                            console.log(`Failed to preload ${gifId}, trying fallback...`);
+                            const fallbackImg = new Image();
+                            const fallbackUrl = `./goats/${this.fallbackGifId}.gif`;
+
+                            fallbackImg.onload = () => {
+                                this.preloadCache.set(this.fallbackGifId, {
+                                    url: fallbackUrl,
+                                    loadTime: Date.now() - startTime,
+                                    timestamp: Date.now()
+                                });
+                                resolve(fallbackUrl);
+                            };
+
+                            fallbackImg.onerror = () => {
+                                reject(new Error(`Failed to preload both ${gifId} and fallback ${this.fallbackGifId}`));
+                            };
+
+                            fallbackImg.src = fallbackUrl;
+                        } else {
+                            reject(new Error(`Failed to preload gif: ${gifId}`));
+                        }
                     };
 
                     img.src = gifUrl;
@@ -1348,6 +1372,27 @@
                 });
             }
 
+            // New method with fallback functionality
+            async loadGifToLayerWithFallback(gifId, layer) {
+                try {
+                    await this.loadGifToLayer(gifId, layer);
+                } catch (error) {
+                    console.log(`Failed to load gif ${gifId}, trying fallback ${this.fallbackGifId}...`);
+
+                    if (gifId !== this.fallbackGifId) {
+                        try {
+                            await this.loadGifToLayer(this.fallbackGifId, layer);
+                            console.log(`Successfully loaded fallback gif ${this.fallbackGifId}`);
+                        } catch (fallbackError) {
+                            console.error(`Both original and fallback gifs failed to load:`, error, fallbackError);
+                            throw new Error(`Failed to load both original gif (${gifId}) and fallback gif (${this.fallbackGifId})`);
+                        }
+                    } else {
+                        throw error; // Already trying fallback, so re-throw
+                    }
+                }
+            }
+
             startTimer() {
                 // Ensure any existing timer is stopped first
                 this.stopTimer();
@@ -1420,7 +1465,7 @@
                         this.stopTimer();
 
                         // Load cached gif (should be instant)
-                        await this.loadGifToLayer(gifId, inactiveLayer);
+                        await this.loadGifToLayerWithFallback(gifId, inactiveLayer);
 
                         // Immediate smooth transition
                         activeLayer.classList.add('fade-out');
@@ -1441,7 +1486,7 @@
 
                         // Now stop timer and load
                         this.stopTimer();
-                        await this.loadGifToLayer(gifId, inactiveLayer);
+                        await this.loadGifToLayerWithFallback(gifId, inactiveLayer);
                         this.hideLoadingState();
 
                         // Smooth transition
