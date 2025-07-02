@@ -740,7 +740,7 @@
 
                 <div class="embed-preview">
                     <h3>Short URL:</h3>
-                    <div class="code-container-msall">
+                    <div class="code-container-small">
                         <button class="copy-button" id="copyShareButton">Copy</button>
                         <pre class="code-block" id="shareUrl">rdgt.co/loading...</pre>
                     </div>
@@ -867,6 +867,10 @@
                 this.firstGifReady = false;
                 this.forcedSeason = null;
                 this.currentGifId = null;
+
+                // Modal pause state tracking
+                this.isModalPaused = false;
+                this.pausedCountdown = null;
 
                 // Adaptive preloading settings
                 this.preloadConfig = {
@@ -1532,8 +1536,57 @@
                 this.elements.progressBar.style.width = '0%';
             }
 
+            // Enhanced modal pause functionality
+            pauseTimerForModal() {
+                // Clear any existing timers and timeouts
+                this.stopTimer();
+
+                // Clear any pending safety timeouts or other scheduled work
+                if (this.loadingTimeout) {
+                    clearTimeout(this.loadingTimeout);
+                    this.loadingTimeout = null;
+                }
+
+                // Stop any ongoing loading operations
+                this.isLoading = false;
+                this.hideLoadingState();
+
+                // Set modal paused state
+                this.isModalPaused = true;
+                this.pausedCountdown = this.countdown || 20;
+
+                // Reset progress bar to 0% to show fresh start
+                this.elements.progressBar.style.width = '0%';
+
+                console.log(`Timer paused - will resume with fresh 20 seconds for current goat`);
+            }
+
+            resumeTimerFromModal() {
+                if (this.isModalPaused) {
+                    // Clear modal paused state first
+                    this.isModalPaused = false;
+                    this.pausedCountdown = null;
+
+                    // Ensure we're not in a loading state
+                    this.isLoading = false;
+                    this.hideLoadingState();
+
+                    // Small delay to ensure modal close event doesn't interfere
+                    setTimeout(() => {
+                        // Always resume with a full 20-second timer for the same goat
+                        this.countdown = 20;
+                        this.startTimer();
+                        console.log('Timer resumed with full 20 seconds for current goat');
+                    }, 50); // Small delay to prevent any interference
+                }
+            }
+
             async nextGif() {
-                if (this.isLoading) return;
+                // Comprehensive checks to prevent unwanted gif changes
+                if (this.isLoading || this.isModalPaused) {
+                    console.log('nextGif blocked - modal paused or loading');
+                    return;
+                }
 
                 if (this.isShowingSpecificGif) {
                     this.isShowingSpecificGif = false;
@@ -1567,6 +1620,13 @@
                     const activeLayer = this.getActiveLayer();
                     const inactiveLayer = this.getInactiveLayer();
 
+                    // Double-check we're not paused before proceeding with transition
+                    if (this.isModalPaused) {
+                        console.log('nextGif aborted - modal became paused during loading');
+                        this.isLoading = false;
+                        return;
+                    }
+
                     // For cached gifs, transition immediately
                     if (isFromCache) {
                         // Stop timer and start transition right away
@@ -1575,14 +1635,23 @@
                         // Load cached gif (should be instant)
                         await this.loadGifToLayerWithFallback(gifId, inactiveLayer);
 
+                        // Final check before transition
+                        if (this.isModalPaused) {
+                            console.log('nextGif aborted before transition - modal became paused');
+                            this.isLoading = false;
+                            return;
+                        }
+
                         // Immediate smooth transition
                         activeLayer.classList.add('fade-out');
                         inactiveLayer.classList.add('active');
 
                         setTimeout(() => {
-                            activeLayer.classList.remove('active', 'fade-out');
-                            this.currentLayer = this.currentLayer === 1 ? 2 : 1;
-                            this.startTimer(); // Start timer after transition
+                            if (!this.isModalPaused) {
+                                activeLayer.classList.remove('active', 'fade-out');
+                                this.currentLayer = this.currentLayer === 1 ? 2 : 1;
+                                this.startTimer(); // Start timer after transition
+                            }
                         }, 600);
 
                     } else {
@@ -1592,19 +1661,36 @@
                         // Give a short moment for user to see the loading state
                         await new Promise(resolve => setTimeout(resolve, 100));
 
+                        // Check again before proceeding
+                        if (this.isModalPaused) {
+                            console.log('nextGif aborted during loading - modal became paused');
+                            this.hideLoadingState();
+                            this.isLoading = false;
+                            return;
+                        }
+
                         // Now stop timer and load
                         this.stopTimer();
                         await this.loadGifToLayerWithFallback(gifId, inactiveLayer);
                         this.hideLoadingState();
+
+                        // Final check before transition
+                        if (this.isModalPaused) {
+                            console.log('nextGif aborted before transition - modal became paused');
+                            this.isLoading = false;
+                            return;
+                        }
 
                         // Smooth transition
                         activeLayer.classList.add('fade-out');
                         inactiveLayer.classList.add('active');
 
                         setTimeout(() => {
-                            activeLayer.classList.remove('active', 'fade-out');
-                            this.currentLayer = this.currentLayer === 1 ? 2 : 1;
-                            this.startTimer(); // Start timer after transition
+                            if (!this.isModalPaused) {
+                                activeLayer.classList.remove('active', 'fade-out');
+                                this.currentLayer = this.currentLayer === 1 ? 2 : 1;
+                                this.startTimer(); // Start timer after transition
+                            }
                         }, 600);
                     }
 
@@ -1618,13 +1704,17 @@
                     this.hideLoadingState();
                     this.showError('Failed to load gif. Trying another...');
 
-                    // Ensure timer restarts even on error
-                    this.startTimer();
+                    // Only restart timer if not paused
+                    if (!this.isModalPaused) {
+                        this.startTimer();
 
-                    // Schedule retry without keeping isLoading stuck
-                    setTimeout(() => {
-                        this.nextGif();
-                    }, 1500);
+                        // Schedule retry without keeping isLoading stuck
+                        setTimeout(() => {
+                            if (!this.isModalPaused) {
+                                this.nextGif();
+                            }
+                        }, 1500);
+                    }
                 } finally {
                     // Always reset loading state
                     this.isLoading = false;
@@ -1632,9 +1722,26 @@
             }
 
             handleInteraction(event) {
+                // Prevent interaction if modal is open - most important check
+                if (this.isModalPaused) {
+                    console.log('Interaction blocked - modal is open and paused');
+                    return;
+                }
+
                 // Prevent stuck loading states
                 if (this.isLoading) {
                     console.log('Interaction blocked - currently loading');
+                    return;
+                }
+
+                // Check if this interaction is on a modal-related element
+                const target = event.target;
+                if (target && (
+                    target.closest('.modal-overlay') ||
+                    target.closest('.share-button') ||
+                    target.closest('.embed-button')
+                )) {
+                    console.log('Interaction on modal element - not triggering gif change');
                     return;
                 }
 
@@ -1643,7 +1750,7 @@
 
                 // Add a safeguard timeout to reset loading state if something goes wrong
                 const safetyTimeout = setTimeout(() => {
-                    if (this.isLoading) {
+                    if (this.isLoading && !this.isModalPaused) {
                         console.warn('Loading state stuck - forcing reset');
                         this.isLoading = false;
                         this.hideLoadingState();
@@ -1655,9 +1762,11 @@
 
                 // Aggressively preload after user interaction (they'll likely click again)
                 setTimeout(() => {
-                    this.scheduleBackgroundWork(() => {
-                        this.performIntelligentPreload();
-                    }, 'normal');
+                    if (!this.isModalPaused) {
+                        this.scheduleBackgroundWork(() => {
+                            this.performIntelligentPreload();
+                        }, 'normal');
+                    }
                 }, 100);
 
                 // Clear the safety timeout after a reasonable time
@@ -1743,25 +1852,39 @@
             }
 
             openShareModal() {
+                // Pause the timer and reset progress to start
+                this.pauseTimerForModal();
+
+                // Clear any pending gif loading to prevent interruption
+                if (this.isLoading) {
+                    this.isLoading = false;
+                    this.hideLoadingState();
+                }
+
                 // Update the share URL with current gif ID
                 const shareUrl = this.currentGifId ? `rdgt.co/${this.currentGifId}` : 'rdgt.co/loading...';
                 this.elements.shareUrl.textContent = shareUrl;
 
-                // Pause the timer so the current goat doesn't change
-                this.stopTimer();
-
+                // Show the modal
                 this.elements.shareModalOverlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
+
+                console.log('Share modal opened - timer paused and will reset on close');
             }
 
             closeShareModal() {
+                // Hide the modal first
                 this.elements.shareModalOverlay.classList.remove('show');
                 document.body.style.overflow = '';
                 this.elements.copyShareButton.textContent = 'Copy';
                 this.elements.copyShareButton.classList.remove('copied');
 
-                // Resume the timer when modal is closed
-                this.startTimer();
+                // Resume the timer with full duration for current goat
+                // Use a longer delay to ensure modal close events don't interfere
+                setTimeout(() => {
+                    this.resumeTimerFromModal();
+                    console.log('Share modal closed - timer resumed after delay');
+                }, 100); // Delay to prevent interference
             }
 
             async copyEmbedCode() {
