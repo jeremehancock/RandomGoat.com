@@ -327,10 +327,10 @@
             }
         }
 
-        .embed-button {
+        .embed-button,
+        .share-button {
             position: absolute;
             top: 10px;
-            right: 10px;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.5));
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -354,13 +354,29 @@
             height: 50px;
         }
 
-        .embed-button:hover {
+        .embed-button {
+            right: 10px;
+        }
+
+        .share-button {
+            left: 10px;
+        }
+
+        .embed-button:hover,
+        .share-button:hover {
             transform: translateY(-2px) scale(1.05);
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
             box-shadow:
                 0 12px 40px rgba(0, 0, 0, 0.6),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
             border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .embed-icon {
+            width: 26px;
+            height: 26px;
+            fill: currentColor;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
         }
 
         .modal-overlay {
@@ -625,12 +641,20 @@
                 font-size: 1.4rem;
             }
 
-            .embed-button {
+            .embed-button,
+            .share-button {
                 top: 10px;
-                right: 10px;
                 padding: 8px 15px;
                 font-size: 0.8rem;
                 gap: 6px;
+            }
+
+            .embed-button {
+                right: 10px;
+            }
+
+            .share-button {
+                left: 10px;
             }
 
             .modal {
@@ -678,6 +702,11 @@
                 top: max(10px, env(safe-area-inset-top, 10px));
                 right: max(10px, env(safe-area-inset-right, 10px));
             }
+
+            .share-button {
+                top: max(10px, env(safe-area-inset-top, 10px));
+                left: max(10px, env(safe-area-inset-left, 10px));
+            }
         }
     </style>
 </head>
@@ -688,8 +717,46 @@
             <h1>🐐 Loading Goats...</h1>
         </div>
 
-        <button class="embed-button" id="embedButton">
+        <div class="modal-overlay" id="shareModalOverlay">
+            <div class="modal">
+                <div class="modal-header">
+                    <h2 class="modal-title">
+                        <span class="goat-icon">🔗</span>
+                        <span class="title-text">Share This Goat</span>
+                    </h2>
+                    <button class="close-button" id="closeShareModal">×</button>
+                </div>
+
+                <div class="embed-preview">
+                    <h3>Short URL:</h3>
+                    <div class="code-container">
+                        <button class="copy-button" id="copyShareButton">Copy</button>
+                        <pre class="code-block" id="shareUrl">rdgt.co/loading...</pre>
+                    </div>
+                </div>
+
+                <div class="embed-instructions">
+                    <h4>Share this goat:</h4>
+                    <p>1. Copy the short URL above</p>
+                    <p>2. Share it with your friends</p>
+                    <p>3. They'll see the same goat gif! 🐐</p>
+                </div>
+            </div>
+        </div>
+
+        <button class="share-button" id="shareButton">
             <span>🔗</span>
+        </button>
+
+        <button class="embed-button" id="embedButton">
+            <svg class="embed-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13.5 6L10 18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M6.5 8.5L3 12L6.5 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+                <path d="M17.5 8.5L21 12L17.5 15.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
         </button>
 
         <div class="gif-container" id="gifContainer">
@@ -788,6 +855,7 @@
                 this.isEmbedded = false;
                 this.firstGifReady = false;
                 this.forcedSeason = null;
+                this.currentGifId = null;
 
                 // Adaptive preloading settings
                 this.preloadConfig = {
@@ -831,7 +899,12 @@
                     modalOverlay: document.getElementById('modalOverlay'),
                     closeModal: document.getElementById('closeModal'),
                     copyButton: document.getElementById('copyButton'),
-                    embedCode: document.getElementById('embedCode')
+                    embedCode: document.getElementById('embedCode'),
+                    shareButton: document.getElementById('shareButton'),
+                    shareModalOverlay: document.getElementById('shareModalOverlay'),
+                    closeShareModal: document.getElementById('closeShareModal'),
+                    copyShareButton: document.getElementById('copyShareButton'),
+                    shareUrl: document.getElementById('shareUrl')
                 };
 
                 this.init();
@@ -922,8 +995,17 @@
                     this.openModal();
                 });
 
+                this.elements.shareButton.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.openShareModal();
+                });
+
                 this.elements.closeModal.addEventListener('click', () => {
                     this.closeModal();
+                });
+
+                this.elements.closeShareModal.addEventListener('click', () => {
+                    this.closeShareModal();
                 });
 
                 this.elements.modalOverlay.addEventListener('click', (e) => {
@@ -932,13 +1014,24 @@
                     }
                 });
 
+                this.elements.shareModalOverlay.addEventListener('click', (e) => {
+                    if (e.target === this.elements.shareModalOverlay) {
+                        this.closeShareModal();
+                    }
+                });
+
                 this.elements.copyButton.addEventListener('click', () => {
                     this.copyEmbedCode();
+                });
+
+                this.elements.copyShareButton.addEventListener('click', () => {
+                    this.copyShareUrl();
                 });
 
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
                         this.closeModal();
+                        this.closeShareModal();
                     }
                 });
 
@@ -982,6 +1075,7 @@
 
                     if (!gifId) throw new Error('No gif ID available');
 
+                    this.currentGifId = gifId;
                     const startTime = Date.now();
                     await this.loadGifToLayerWithFallback(gifId, this.elements.layer1);
 
@@ -1021,6 +1115,7 @@
                 if (window.self !== window.top) {
                     this.isEmbedded = true;
                     this.elements.embedButton.style.display = 'none';
+                    this.elements.shareButton.style.display = 'none';
                     this.elements.seasonalMascot.style.display = 'none';
                     // Reduce preloading in embedded mode
                     this.preloadConfig.background = 2;
@@ -1449,10 +1544,12 @@
                         gifId = cachedGif.id;
                         gifUrl = cachedGif.url;
                         isFromCache = true;
+                        this.currentGifId = gifId;
                     } else {
                         // Fallback to loading fresh
                         gifId = this.getRandomGifId();
                         if (!gifId) throw new Error('No gif ID available');
+                        this.currentGifId = gifId;
                         isFromCache = false;
                     }
 
@@ -1634,6 +1731,28 @@
                 this.elements.copyButton.classList.remove('copied');
             }
 
+            openShareModal() {
+                // Update the share URL with current gif ID
+                const shareUrl = this.currentGifId ? `rdgt.co/${this.currentGifId}` : 'rdgt.co/loading...';
+                this.elements.shareUrl.textContent = shareUrl;
+
+                // Pause the timer so the current goat doesn't change
+                this.stopTimer();
+
+                this.elements.shareModalOverlay.classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+
+            closeShareModal() {
+                this.elements.shareModalOverlay.classList.remove('show');
+                document.body.style.overflow = '';
+                this.elements.copyShareButton.textContent = 'Copy';
+                this.elements.copyShareButton.classList.remove('copied');
+
+                // Resume the timer when modal is closed
+                this.startTimer();
+            }
+
             async copyEmbedCode() {
                 const code = this.elements.embedCode.textContent;
 
@@ -1670,6 +1789,49 @@
                         this.elements.copyButton.textContent = 'Failed';
                         setTimeout(() => {
                             this.elements.copyButton.textContent = 'Copy';
+                        }, 2000);
+                    }
+
+                    document.body.removeChild(textArea);
+                }
+            }
+
+            async copyShareUrl() {
+                const url = this.elements.shareUrl.textContent;
+
+                try {
+                    await navigator.clipboard.writeText(url);
+                    this.elements.copyShareButton.textContent = '✓ Copied!';
+                    this.elements.copyShareButton.classList.add('copied');
+
+                    setTimeout(() => {
+                        this.elements.copyShareButton.textContent = 'Copy';
+                        this.elements.copyShareButton.classList.remove('copied');
+                    }, 2000);
+                } catch (err) {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = url;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+
+                    try {
+                        document.execCommand('copy');
+                        this.elements.copyShareButton.textContent = '✓ Copied!';
+                        this.elements.copyShareButton.classList.add('copied');
+
+                        setTimeout(() => {
+                            this.elements.copyShareButton.textContent = 'Copy';
+                            this.elements.copyShareButton.classList.remove('copied');
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy text: ', err);
+                        this.elements.copyShareButton.textContent = 'Failed';
+                        setTimeout(() => {
+                            this.elements.copyShareButton.textContent = 'Copy';
                         }, 2000);
                     }
 

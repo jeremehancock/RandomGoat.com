@@ -1316,6 +1316,61 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             padding: 8px 12px;
             border-radius: 6px;
             flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .id-text {
+            flex: 1;
+            word-break: break-all;
+        }
+
+        .copy-id-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .copy-id-btn:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+
+        .copy-id-btn:active {
+            transform: scale(0.95);
+        }
+
+        .copy-id-btn.copied {
+            color: var(--success);
+            animation: copySuccess 0.3s ease;
+        }
+
+        @keyframes copySuccess {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .goat-tags {
@@ -1907,6 +1962,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             .goat-info {
                 padding: 16px;
+                width: 100%;
             }
 
             .goat-id {
@@ -1915,6 +1971,22 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 border-radius: 8px;
                 margin-bottom: 12px;
                 background: var(--bg-tertiary);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 6px;
+            }
+
+            .copy-id-btn {
+                min-width: 24px;
+                height: 24px;
+                font-size: 14px;
+                padding: 4px;
+                touch-action: manipulation;
+            }
+
+            .copy-id-btn:hover {
+                background: var(--bg-secondary);
             }
 
             .goat-tags {
@@ -1928,35 +2000,51 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
 
             .goat-actions {
-                align-items: center;
-                gap: 8px;
-                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+                flex-direction: row;
+                justify-content: center;
+                flex-wrap: nowrap;
+                width: 100%;
+                margin-top: auto;
             }
 
             .goat-links {
-                align-self: stretch;
-                justify-content: center;
+                flex-shrink: 0;
+                display: flex;
             }
 
             .goat-link {
                 width: 44px;
-                height: 44px;
-                border-radius: 12px;
-                font-size: 18px;
+                height: 40px;
+                border-radius: 8px;
+                font-size: 16px;
                 touch-action: manipulation;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
             .goat-action-buttons {
-                align-self: stretch;
-                justify-content: space-between;
+                display: flex;
+                gap: 6px;
+                flex: 1;
+                flex-wrap: nowrap;
             }
 
             .goat-action-buttons .btn {
                 flex: 1;
                 min-width: auto;
-                padding: 10px 8px;
-                font-size: 12px;
+                padding: 8px 6px;
+                font-size: 13px;
+                height: 40px;
                 min-height: 40px;
+                white-space: nowrap;
+                max-width: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 8px;
             }
 
             /* Mobile pagination */
@@ -2159,6 +2247,54 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             .goat-image-container {
                 height: 220px;
+            }
+
+            .goat-id {
+                font-size: 10px;
+                padding: 6px 10px;
+                border-radius: 6px;
+                margin-bottom: 10px;
+            }
+
+            .copy-id-btn {
+                min-width: 20px;
+                height: 20px;
+                font-size: 12px;
+                padding: 2px;
+            }
+
+            .goat-actions {
+                gap: 4px;
+                align-items: stretch;
+            }
+
+            .goat-links {
+                flex-shrink: 0;
+                display: flex;
+            }
+
+            .goat-action-buttons {
+                flex: 1;
+                gap: 4px;
+            }
+
+            .goat-action-buttons .btn {
+                flex: 1;
+                padding: 8px 4px;
+                font-size: 12px;
+                height: 36px;
+                min-height: 36px;
+                border-radius: 6px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .goat-link {
+                height: 36px;
+                border-radius: 6px;
+                font-size: 14px;
+                width: 40px;
             }
 
             .pagination {
@@ -2413,7 +2549,10 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                             </div>
                             <div class="goat-info">
                                 <div class="goat-id">
-                                    ID: <?php echo htmlspecialchars($goat['id']); ?>
+                                    <span class="id-text">ID: <?php echo htmlspecialchars($goat['id']); ?></span>
+                                    <button type="button" class="copy-id-btn"
+                                        onclick="copyToClipboard('<?php echo htmlspecialchars($goat['id']); ?>', this)"
+                                        title="Copy ID to clipboard">📋</button>
                                     <?php if (strpos($goat['id'], 'url-') === 0): ?>
                                         <br><small style="color: var(--text-muted); font-size: 10px;">Direct URL Import</small>
                                     <?php endif; ?>
@@ -2741,6 +2880,64 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 preloadNextPageImages();
             }
         });
+
+        // Copy to clipboard functionality
+        function copyToClipboard(text, button) {
+            // Try the modern clipboard API first
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess(button);
+                }).catch(() => {
+                    // Fallback to older method
+                    fallbackCopyToClipboard(text, button);
+                });
+            } else {
+                // Fallback for older browsers or non-secure contexts
+                fallbackCopyToClipboard(text, button);
+            }
+        }
+
+        function fallbackCopyToClipboard(text, button) {
+            // Create a temporary textarea element
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+
+            try {
+                document.execCommand('copy');
+                showCopySuccess(button);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showCopyError(button);
+            }
+
+            document.body.removeChild(textArea);
+        }
+
+        function showCopySuccess(button) {
+            const originalText = button.textContent;
+            button.textContent = '✅';
+            button.classList.add('copied');
+
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('copied');
+            }, 1500);
+        }
+
+        function showCopyError(button) {
+            const originalText = button.textContent;
+            button.textContent = '❌';
+
+            setTimeout(() => {
+                button.textContent = originalText;
+            }, 1500);
+        }
 
         // Tag editing functions
         function showEditTagsModal(goatId, tags) {
