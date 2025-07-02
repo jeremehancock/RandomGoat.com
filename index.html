@@ -872,6 +872,9 @@
                 this.isModalPaused = false;
                 this.pausedCountdown = null;
 
+                // Transition state tracking
+                this.transitionTimeout = null;
+
                 // Adaptive preloading settings
                 this.preloadConfig = {
                     immediate: 3,       // Keep 3 ready immediately for instant transitions
@@ -1541,6 +1544,12 @@
                 // Clear any existing timers and timeouts
                 this.stopTimer();
 
+                // Clear any pending transition timeouts
+                if (this.transitionTimeout) {
+                    clearTimeout(this.transitionTimeout);
+                    this.transitionTimeout = null;
+                }
+
                 // Clear any pending safety timeouts or other scheduled work
                 if (this.loadingTimeout) {
                     clearTimeout(this.loadingTimeout);
@@ -1571,6 +1580,9 @@
                     this.isLoading = false;
                     this.hideLoadingState();
 
+                    // Clean up any potential leftover animation states
+                    this.cleanupLayerStates();
+
                     // Small delay to ensure modal close event doesn't interfere
                     setTimeout(() => {
                         // Always resume with a full 20-second timer for the same goat
@@ -1579,6 +1591,24 @@
                         console.log('Timer resumed with full 20 seconds for current goat');
                     }, 50); // Small delay to prevent any interference
                 }
+            }
+
+            // New method to clean up any leftover animation states
+            cleanupLayerStates() {
+                // Remove any transition classes that might be stuck
+                this.elements.layer1.classList.remove('fade-out');
+                this.elements.layer2.classList.remove('fade-out');
+
+                // Ensure proper active state based on currentLayer
+                if (this.currentLayer === 1) {
+                    this.elements.layer1.classList.add('active');
+                    this.elements.layer2.classList.remove('active');
+                } else {
+                    this.elements.layer2.classList.add('active');
+                    this.elements.layer1.classList.remove('active');
+                }
+
+                console.log(`Cleaned up layer states - layer${this.currentLayer} is active`);
             }
 
             async nextGif() {
