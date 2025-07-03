@@ -464,8 +464,10 @@ function readGoatsData($file)
     $goats = [];
     foreach ($data as $goat) {
         if (isset($goat['id'])) {
+            $shortId = isset($goat['short_id']) ? $goat['short_id'] : createShortId($goat['id']);
             $goats[] = [
                 'id' => $goat['id'],
+                'short_id' => $shortId,
                 'tags' => isset($goat['tags']) ? $goat['tags'] : []
             ];
         }
@@ -795,6 +797,11 @@ if ($search && $isLoggedIn) {
     $filteredGoatsData = array_filter($allGoatsData, function ($goat) use ($searchLower) {
         // Search in ID
         if (stripos($goat['id'], $searchLower) !== false) {
+            return true;
+        }
+
+        // Search in short ID
+        if (stripos($goat['short_id'], $searchLower) !== false) {
             return true;
         }
 
@@ -1471,6 +1478,20 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
             font-size: 12px;
             color: var(--text-muted);
+            margin-bottom: 8px;
+            background: var(--bg-tertiary);
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .goat-short-id {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            color: var(--text-muted);
             margin-bottom: 15px;
             background: var(--bg-tertiary);
             padding: 8px 12px;
@@ -1479,6 +1500,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             align-items: center;
             justify-content: space-between;
             gap: 8px;
+            border: 1px solid rgba(91, 33, 182, 0.3);
+            position: relative;
         }
 
         .id-text {
@@ -1991,6 +2014,10 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 margin: 0;
             }
 
+            .github-status.enabled {
+                align-self: flex-start;
+            }
+
             .goat-image-container {
                 height: 250px;
                 /* Reduce transforms on mobile for better performance */
@@ -2226,12 +2253,26 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 font-size: 11px;
                 padding: 8px 12px;
                 border-radius: 8px;
+                margin-bottom: 8px;
+                background: var(--bg-tertiary);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 6px;
+            }
+
+            .goat-short-id {
+                font-size: 11px;
+                padding: 8px 12px;
+                border-radius: 8px;
                 margin-bottom: 12px;
                 background: var(--bg-tertiary);
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 gap: 6px;
+                border: 1px solid rgba(91, 33, 182, 0.3);
+                position: relative;
             }
 
             .copy-id-btn {
@@ -2532,7 +2573,19 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 font-size: 10px;
                 padding: 6px 10px;
                 border-radius: 6px;
+                margin-bottom: 6px;
+            }
+
+            .goat-short-id {
+                font-size: 10px;
+                padding: 6px 10px;
+                border-radius: 6px;
                 margin-bottom: 10px;
+            }
+
+            .goat-short-id::before {
+                left: -6px;
+                font-size: 7px;
             }
 
             .copy-id-btn {
@@ -2859,15 +2912,27 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                     data-goat-id="<?php echo htmlspecialchars($goat['id']); ?>">
                             </div>
                             <div class="goat-info">
+                                <!-- Main ID -->
                                 <div class="goat-id">
                                     <span class="id-text">ID: <?php echo htmlspecialchars($goat['id']); ?></span>
                                     <button type="button" class="copy-id-btn"
                                         onclick="copyToClipboard('<?php echo htmlspecialchars($goat['id']); ?>', this)"
                                         title="Copy ID to clipboard">📋</button>
-                                    <?php if (strpos($goat['id'], 'url-') === 0): ?>
-                                        <br><small style="color: var(--text-muted); font-size: 10px;">Direct URL Import</small>
-                                    <?php endif; ?>
                                 </div>
+
+                                <!-- Short ID -->
+                                <div class="goat-short-id">
+                                    <span class="id-text">Short ID: <?php echo htmlspecialchars($goat['short_id']); ?></span>
+                                    <button type="button" class="copy-id-btn"
+                                        onclick="copyToClipboard('<?php echo htmlspecialchars($goat['short_id']); ?>', this)"
+                                        title="Copy Short ID to clipboard">📋</button>
+                                </div>
+
+                                <?php if (strpos($goat['id'], 'url-') === 0): ?>
+                                    <small
+                                        style="color: var(--text-muted); font-size: 10px; margin-bottom: 10px; display: block;">Direct
+                                        URL Import</small>
+                                <?php endif; ?>
 
                                 <?php if (!empty($goat['tags'])): ?>
                                     <div class="goat-tags">
@@ -2996,6 +3061,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     <small style="color: var(--text-muted); font-size: 12px; margin-top: 10px; display: block;">
                         🔗 <strong>Giphy:</strong> Uses Giphy ID (e.g., cMso9wDwqSy3e)<br>
                         🌐 <strong>Direct:</strong> Uses URL hash (prevents duplicates)<br>
+                        ⭐ <strong>Short ID:</strong> Auto-generated 5-char hash for easy sharing
                     </small>
                     <div class="form-buttons">
                         <button type="button" class="btn btn-secondary" onclick="hideAddGoatModal()">Cancel</button>
@@ -3010,7 +3076,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>🔍 Find Goat</h2>
-                    <p>Search for goats by ID or tags</p>
+                    <p>Search for goats by ID, Short ID, or tags</p>
                 </div>
                 <form method="GET" id="searchForm">
                     <!-- Preserve items per page setting when searching -->
@@ -3018,11 +3084,11 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                         <input type="hidden" name="perPage" value="<?php echo $perPage; ?>">
                     <?php endif; ?>
                     <div class="form-group">
-                        <label for="search">Search by ID or Tags:</label>
-                        <input type="text" id="search" name="search" placeholder="Enter goat ID or tag..."
+                        <label for="search">Search by ID, Short ID, or Tags:</label>
+                        <input type="text" id="search" name="search" placeholder="Enter goat ID, short ID, or tag..."
                             value="<?php echo htmlspecialchars($search); ?>">
                         <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                            🔍 Search Giphy IDs, url-HASH patterns, or tags
+                            🔍 Search Giphy IDs, url-HASH patterns, short IDs (5-char), or tags
                         </small>
                     </div>
                     <div class="form-buttons">
