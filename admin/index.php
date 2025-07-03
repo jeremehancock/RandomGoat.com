@@ -5,7 +5,8 @@ session_start();
 // Configuration
 $dataFile = '../data/goats.json';
 $goatsDir = '../goats/';
-$perPage = 12;
+$allowedPerPage = [12, 24, 48, 60];
+$perPage = isset($_GET['perPage']) && in_array((int) $_GET['perPage'], $allowedPerPage) ? (int) $_GET['perPage'] : 12;
 $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 
@@ -545,7 +546,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                 if ($localSaveSuccess) {
                                     $sizeKB = round($downloadResult['size'] / 1024, 1);
                                     $tagsText = !empty($tags) ? ' (Tags: ' . implode(', ', $tags) . ')' : '';
-                                    $message = "Giphy goat added locally! ID: {$id} (Size: {$sizeKB} KB){$tagsText}";
+                                    $message = "Goat added! ID: {$id} (Size: {$sizeKB} KB){$tagsText}";
 
                                     // Try to commit to GitHub if configured
                                     if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
@@ -618,7 +619,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                     $sizeKB = round($downloadResult['size'] / 1024, 1);
                                     $fileType = $downloadResult['type'] ?? 'Image';
                                     $tagsText = !empty($tags) ? ' (Tags: ' . implode(', ', $tags) . ')' : '';
-                                    $message = "Direct URL goat added locally! ID: {$id} (Size: {$sizeKB} KB, Type: {$fileType}){$tagsText}";
+                                    $message = "Goat added! ID: {$id} (Size: {$sizeKB} KB, Type: {$fileType}){$tagsText}";
 
                                     // Try to commit to GitHub if configured
                                     if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
@@ -633,7 +634,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                         );
 
                                         if ($githubResults['gif']['success'] && $githubResults['json']['success']) {
-                                            $message .= " ✅ Successfully committed to GitHub!";
+                                            $message .= " <br/>✅ Successfully committed to GitHub!";
                                             $messageType = 'success';
                                         } else {
                                             $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
@@ -683,7 +684,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($localSaveSuccess) {
                         $tagsText = !empty($newTags) ? implode(', ', $newTags) : 'none';
-                        $message = "Tags updated locally! New tags: {$tagsText}";
+                        $message = "Tags updated! New tags: {$tagsText}";
 
                         // Try to update on GitHub if configured
                         if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
@@ -732,7 +733,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Delete local GIF file
                         $deleteFileResult = deleteGoatFiles($idToDelete, $goatsDir);
 
-                        $message = "Goat deleted locally!";
+                        $message = "Goat deleted!";
 
                         // Try to delete from GitHub if configured
                         if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)) {
@@ -822,6 +823,9 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         type="image/svg+xml">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Looking for random goat gifs? Look no further!" />
+    <!-- Performance hints for faster loading -->
+    <link rel="preconnect" href="https://media.giphy.com">
+    <link rel="dns-prefetch" href="https://media.giphy.com">
     <style>
         :root {
             --bg-primary: #0f0f0f;
@@ -889,20 +893,36 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             font-size: 2rem;
         }
 
+        .header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .header-bottom-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
         .stats {
             color: var(--text-secondary);
             font-size: 14px;
         }
 
         .github-status {
-            margin-top: 8px;
             padding: 6px 12px;
             border-radius: 6px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            height: max-content;
         }
 
         .github-status.enabled {
@@ -917,10 +937,46 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             border: 1px solid rgba(217, 119, 6, 0.3);
         }
 
+        /* Per page selector in header */
+        .per-page-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
+        }
+
+        .per-page-container label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .per-page-container select {
+            width: 100%;
+            max-width: 100px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .per-page-container select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
+        }
+
         .logout-btn {
             background: var(--error);
             color: #ffffff;
-            padding: 12px 20px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
@@ -934,10 +990,13 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             box-shadow: 0 3px 6px rgba(220, 38, 38, 0.4);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            min-width: 110px;
-            min-height: 44px;
+            width: 40px;
+            height: 40px;
             flex-shrink: 0;
             align-self: flex-start;
+            position: absolute;
+            right: 50px;
+            top: 40px;
         }
 
         .logout-btn:hover {
@@ -982,50 +1041,116 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         }
 
         .controls-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            align-items: stretch;
+            display: flex;
+            gap: 20px;
+            align-items: center;
         }
 
-        .control-section {
-            background: var(--bg-tertiary);
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .clear-search-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-btn {
+            background: var(--accent-primary);
+            color: #ffffff;
+            padding: 16px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 8px rgba(91, 33, 182, 0.3);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 56px;
+            flex: 1;
+            white-space: nowrap;
+        }
+
+        .action-btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(91, 33, 182, 0.4);
+        }
+
+        .action-btn.search {
+            background: var(--success);
+            box-shadow: 0 4px 8px rgba(5, 150, 105, 0.3);
+        }
+
+        .action-btn.search:hover {
+            background: var(--success-hover);
+            box-shadow: 0 6px 12px rgba(5, 150, 105, 0.4);
+        }
+
+        /* Per page selector */
+        .per-page-container {
             display: flex;
             flex-direction: column;
-            min-height: 200px;
+            align-items: center;
+            justify-content: center;
+            min-width: 120px;
         }
 
-        .control-section h3 {
-            margin-bottom: 20px;
+        .per-page-container label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
             color: var(--text-primary);
-            font-size: 1.25rem;
+            text-align: center;
+            font-size: 12px;
         }
 
-        .control-section form {
-            display: flex;
-            flex-direction: column;
-            flex: 1;
+        .per-page-container select {
+            width: 100%;
+            max-width: 100px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            text-align: center;
         }
 
-        .form-content {
-            flex: 1;
+        .per-page-container select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
         }
 
-        .form-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: auto;
-            padding-top: 20px;
-            min-height: 64px;
-            align-items: flex-end;
+        /* Style select dropdown arrow */
+        select {
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="%23ffffff" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 12px;
+            padding-right: 40px;
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        select option {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8px 12px;
         }
 
         label {
@@ -1150,14 +1275,18 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             color: var(--text-primary);
         }
 
+        /* Optimized gallery for better performance */
         .gallery {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 24px;
             margin-bottom: 30px;
             justify-content: center;
+            /* Better rendering performance */
+            contain: layout style;
         }
 
+        /* Optimized goat items for better performance */
         .goat-item {
             max-width: 350px;
             width: 100%;
@@ -1167,19 +1296,26 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             overflow: visible;
             box-shadow: 0 4px 6px var(--shadow);
             border: 1px solid var(--border);
-            transition: transform 0.3s, box-shadow 0.3s;
+            /* Faster, smoother transitions */
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
             height: 100%;
             position: relative;
+            /* Hardware acceleration */
+            transform: translateZ(0);
+            will-change: transform;
+            /* Better layout performance */
+            contain: layout style;
         }
 
         .goat-item:hover {
-            transform: translateY(-4px);
+            transform: translateY(-4px) translateZ(0);
             box-shadow: 0 8px 25px var(--shadow);
         }
 
-        /* Enhanced image container for lazy loading */
+        /* Optimized image container for better loading experience */
         .goat-image-container {
             position: relative;
             width: 100%;
@@ -1187,14 +1323,28 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             border-radius: 12px 12px 0 0;
             overflow: hidden;
             background: var(--bg-tertiary);
+            /* Hardware acceleration for smoother transitions */
+            transform: translateZ(0);
+            will-change: transform;
         }
 
+        /* OPTIMIZED image styles - MAXIMUM SPEED */
         .goat-gif {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: opacity 0.3s ease, filter 0.3s ease;
+            /* INSTANT transition - no delay */
+            transition: opacity 0.05s ease;
             opacity: 0;
+            /* Hardware acceleration */
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            /* Performance hint for browsers */
+            will-change: opacity;
+            /* Better image rendering */
+            image-rendering: auto;
+            image-rendering: crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
         }
 
         .goat-gif.loaded {
@@ -1206,23 +1356,25 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             filter: grayscale(100%);
         }
 
-        /* Loading placeholder */
+        /* INSTANT loading placeholder */
         .image-placeholder {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(90deg, var(--bg-tertiary) 25%, var(--bg-secondary) 50%, var(--bg-tertiary) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
+            /* Simple solid background - no animation for max speed */
+            background: var(--bg-tertiary);
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-muted);
             font-size: 24px;
             opacity: 1;
-            transition: opacity 0.3s ease;
+            /* INSTANT transition */
+            transition: opacity 0.05s ease;
+            /* Hardware acceleration */
+            transform: translateZ(0);
         }
 
         .image-placeholder.hidden {
@@ -1230,7 +1382,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             pointer-events: none;
         }
 
-        /* Error placeholder */
+        /* INSTANT error state transitions */
         .image-error {
             position: absolute;
             top: 0;
@@ -1247,7 +1399,10 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             text-align: center;
             padding: 20px;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            /* INSTANT transition */
+            transition: opacity 0.05s ease;
+            /* Hardware acceleration */
+            transform: translateZ(0);
         }
 
         .image-error.visible {
@@ -1260,7 +1415,23 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             opacity: 0.7;
         }
 
-        /* Retry button */
+        /* INSTANT progress bar */
+        .loading-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            /* INSTANT transition */
+            transition: width 0.05s ease;
+            border-radius: 0 3px 0 0;
+            /* Hardware acceleration */
+            transform: translateZ(0);
+            will-change: width;
+        }
+
+        /* Optimized retry button */
         .retry-btn {
             background: var(--accent-primary);
             color: #ffffff;
@@ -1270,34 +1441,19 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             font-size: 12px;
             cursor: pointer;
             margin-top: 8px;
-            transition: background 0.2s ease;
+            /* Faster transition */
+            transition: all 0.15s ease;
+            /* Hardware acceleration */
+            transform: translateZ(0);
         }
 
         .retry-btn:hover {
             background: var(--accent-hover);
+            transform: translateY(-1px) translateZ(0);
         }
 
-        /* Loading shimmer animation */
-        @keyframes shimmer {
-            0% {
-                background-position: -200% 0;
-            }
-
-            100% {
-                background-position: 200% 0;
-            }
-        }
-
-        /* Progress bar for loading */
-        .loading-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0%;
-            height: 3px;
-            background: var(--accent-primary);
-            transition: width 0.3s ease;
-            border-radius: 0 3px 0 0;
+        .retry-btn:active {
+            transform: translateY(0) scale(0.98) translateZ(0);
         }
 
         .goat-info {
@@ -1315,7 +1471,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             background: var(--bg-tertiary);
             padding: 8px 12px;
             border-radius: 6px;
-            flex: 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -1327,6 +1482,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             word-break: break-all;
         }
 
+        /* Optimized copy button animations */
         .copy-id-btn {
             background: none;
             border: none;
@@ -1335,41 +1491,45 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             padding: 2px 4px;
             border-radius: 4px;
             font-size: 12px;
-            transition: all 0.2s ease;
+            /* Faster transition */
+            transition: all 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             min-width: 20px;
             height: 20px;
             flex-shrink: 0;
+            /* Hardware acceleration */
+            transform: translateZ(0);
         }
 
         .copy-id-btn:hover {
             background: var(--bg-secondary);
             color: var(--text-primary);
-            transform: scale(1.1);
+            transform: scale(1.1) translateZ(0);
         }
 
         .copy-id-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.95) translateZ(0);
         }
 
         .copy-id-btn.copied {
             color: var(--success);
-            animation: copySuccess 0.3s ease;
+            animation: copySuccess 0.2s ease;
         }
 
+        /* Faster copy success animation */
         @keyframes copySuccess {
             0% {
-                transform: scale(1);
+                transform: scale(1) translateZ(0);
             }
 
             50% {
-                transform: scale(1.2);
+                transform: scale(1.15) translateZ(0);
             }
 
             100% {
-                transform: scale(1);
+                transform: scale(1) translateZ(0);
             }
         }
 
@@ -1412,7 +1572,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             border-radius: 6px;
             text-decoration: none;
             transition: all 0.2s ease;
-            font-size: 16px;
+            font-size: 1.5rem;
             font-weight: 700;
             border: 1px solid var(--border);
         }
@@ -1557,7 +1717,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             display: none;
             position: fixed;
             z-index: 10000;
-            /* Increased z-index to be above everything */
             left: 0;
             top: 0;
             width: 100%;
@@ -1626,6 +1785,30 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             text-align: center;
         }
 
+        /* Form modal specific styles */
+        .form-modal .modal-content {
+            max-width: 600px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group:last-of-type {
+            margin-bottom: 0;
+        }
+
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .form-buttons .btn {
+            flex: 0 0 auto;
+        }
+
         /* Edit Tags Modal Specific Styles */
         .edit-tags-modal .modal-content {
             max-width: 600px;
@@ -1669,7 +1852,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             color: #ffffff;
             padding: 4px 8px;
             border-radius: 12px;
-            font-size: 11px;
+            font-size: 14px;
             font-weight: 600;
             gap: 6px;
             text-transform: lowercase;
@@ -1790,6 +1973,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         }
 
+        /* Mobile optimizations for faster loading */
         @media (max-width: 768px) {
             body {
                 background: var(--bg-primary);
@@ -1801,6 +1985,38 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 padding: 0;
                 max-width: 100%;
                 margin: 0;
+            }
+
+            .goat-image-container {
+                height: 250px;
+                /* Reduce transforms on mobile for better performance */
+                transform: none;
+                will-change: auto;
+            }
+
+            .goat-item:hover {
+                /* Disable expensive hover effects on mobile */
+                transform: none;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Remove ALL animations and transitions on mobile */
+            .goat-gif {
+                transition: none;
+            }
+
+            .image-placeholder {
+                transition: none;
+                animation: none;
+                background: var(--bg-tertiary);
+            }
+
+            .image-error {
+                transition: none;
+            }
+
+            .loading-progress {
+                transition: none;
             }
 
             /* App-like header */
@@ -1821,6 +2037,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 justify-content: space-between;
                 align-items: flex-start;
                 gap: 15px;
+                padding-bottom: 10px;
             }
 
             .header-content {
@@ -1834,29 +2051,59 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 text-align: left;
             }
 
+            .header-wrapper {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .header-bottom-row {
+                flex-direction: column;
+                gap: 8px;
+                align-items: stretch;
+            }
+
             .stats {
                 text-align: left;
                 font-size: 13px;
-                margin-bottom: 0;
+                margin-bottom: 8px;
             }
 
             .github-status {
-                margin-top: 6px;
-                font-size: 10px;
+                font-size: 11px;
                 padding: 4px 8px;
+                align-self: flex-start;
+            }
+
+            .per-page-container {
+                align-self: flex-end;
+                min-width: auto;
+            }
+
+            .per-page-container label {
+                font-size: 11px;
+                margin-bottom: 4px;
+            }
+
+            .per-page-container select {
+                max-width: 80px;
+                padding: 6px 8px;
+                font-size: 12px;
+                border-radius: 4px;
             }
 
             .logout-btn {
                 width: auto;
                 max-width: none;
                 margin: 0;
-                padding: 8px 16px;
                 font-size: 12px;
                 border-radius: 8px;
-                min-width: 70px;
-                min-height: 36px;
+                width: 36px;
+                height: 36px;
                 flex-shrink: 0;
                 align-self: flex-start;
+                position: absolute;
+                right: 10px;
+                top: 10px;
             }
 
             /* App-like controls section */
@@ -1868,25 +2115,30 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
 
             .controls-grid {
-                grid-template-columns: 1fr;
-                gap: 20px;
+                flex-direction: column;
+                gap: 16px;
             }
 
-            .control-section {
-                border-radius: 12px;
-                padding: 20px;
-                min-height: auto;
+            .action-buttons {
+                flex-direction: row;
+                gap: 12px;
+                width: 100%;
+                max-width: none;
             }
 
-            .control-section h3 {
-                font-size: 1.1rem;
-                margin-bottom: 16px;
-                text-align: center;
+            .action-btn {
+                flex: 1;
+                padding: 16px 20px;
+                font-size: 15px;
+                min-height: 56px;
             }
 
-            /* Mobile-optimized forms */
-            .form-group {
-                margin-bottom: 16px;
+            .clear-search-container {
+                width: 100%;
+            }
+
+            .clear-search-container .btn {
+                width: 100%;
             }
 
             input[type="url"],
@@ -1905,6 +2157,13 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             input[type="password"]:focus {
                 border-color: var(--accent-primary);
                 box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.1);
+            }
+
+            /* Mobile select styling */
+            select {
+                background-size: 10px;
+                background-position: right 8px center;
+                padding-right: 24px;
             }
 
             /* App-like buttons */
@@ -1947,12 +2206,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 overflow: hidden;
                 background: var(--bg-secondary);
                 border: 1px solid var(--border);
-            }
-
-            .goat-item:hover {
-                transform: none;
-                /* Disable hover effects on mobile */
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             }
 
             .goat-image-container {
@@ -2151,6 +2404,11 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 border: 1px solid var(--error);
             }
 
+            /* Form modal mobile optimization */
+            .form-modal .modal-content {
+                max-width: none;
+            }
+
             /* Edit tags modal mobile optimization */
             .edit-tags-modal .modal-content {
                 max-width: none;
@@ -2162,7 +2420,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
 
             .editable-tag {
-                font-size: 10px;
+                font-size: 12px;
                 padding: 3px 6px;
                 gap: 4px;
             }
@@ -2206,7 +2464,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             /* Better button feedback */
             .btn:active,
             .btn-secondary:active,
-            .goat-link:active {
+            .goat-link:active,
+            .action-btn:active {
                 transform: scale(0.98);
                 transition: transform 0.1s ease;
             }
@@ -2224,11 +2483,25 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 font-size: 1.5rem;
             }
 
-            .logout-btn {
-                padding: 6px 12px;
+            .per-page-container {
+                min-width: auto;
+            }
+
+            .per-page-container select {
+                max-width: 70px;
+                padding: 4px 6px;
                 font-size: 11px;
-                min-width: 60px;
-                min-height: 32px;
+            }
+
+            .github-status {
+                font-size: 10px;
+                padding: 3px 6px;
+            }
+
+            .logout-btn {
+                font-size: 11px;
+                width: 32px;
+                height: 32px;
             }
 
             .controls {
@@ -2236,8 +2509,10 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 padding: 16px;
             }
 
-            .control-section {
-                padding: 16px;
+            .action-btn {
+                padding: 14px 20px;
+                font-size: 15px;
+                min-height: 52px;
             }
 
             .gallery {
@@ -2293,7 +2568,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             .goat-link {
                 height: 36px;
                 border-radius: 6px;
-                font-size: 14px;
+                font-size: 1.5rem;
                 width: 40px;
             }
 
@@ -2343,17 +2618,31 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 text-align: left;
             }
 
+            .header-wrapper {
+                flex-direction: row;
+                gap: 12px;
+            }
+
+            .header-bottom-row {
+                flex-direction: row;
+                gap: 12px;
+                align-items: center;
+            }
+
             .stats {
                 margin-bottom: 0;
                 text-align: left;
             }
 
+            .per-page-container {
+                align-self: center;
+            }
+
             .logout-btn {
-                padding: 6px 12px;
                 max-width: none;
                 width: auto;
-                min-width: 60px;
-                min-height: 32px;
+                width: 32px;
+                height: 32px;
                 font-size: 11px;
                 margin-left: 12px;
             }
@@ -2379,6 +2668,34 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 min-width: 40px;
             }
         }
+
+        /* For users who prefer reduced motion - instant everything */
+        @media (prefers-reduced-motion: reduce) {
+
+            .goat-gif,
+            .image-placeholder,
+            .image-error,
+            .loading-progress {
+                transition: none !important;
+                animation: none !important;
+            }
+
+            .goat-item {
+                transition: none;
+            }
+
+            .goat-item:hover {
+                transform: none;
+            }
+
+            .action-btn {
+                transition: none;
+            }
+
+            .action-btn:hover {
+                transform: none;
+            }
+        }
     </style>
 </head>
 
@@ -2391,11 +2708,11 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     <h2>🐐 Admin Login</h2>
                 </div>
                 <form method="POST">
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 10px;">
                         <label for="username">Username:</label>
                         <input type="text" id="username" name="username" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group" style="margin-bottom: 20px;">
                         <label for="password">Password:</label>
                         <input type="password" id="password" name="password" required>
                     </div>
@@ -2410,7 +2727,9 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         <div class="container">
             <div class="header">
                 <div class="header-content">
-                    <h1>🐐 Random Goat Admin</h1>
+                    <div class="header-wrapper">
+                        <h1><a href="/admin" style="text-decoration: none; color: white;">🐐 Random Goat Admin</h1></a>
+                    </div>
                     <div class="stats">
                         <?php if ($search): ?>
                             Search: "<?php echo htmlspecialchars($search); ?>" -
@@ -2418,18 +2737,50 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                         <?php else: ?>
                             Total Goats: <?php echo count($allGoatsData); ?> |
                         <?php endif; ?>
-                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?> |
+                        Showing <?php echo $perPage; ?> per page
                     </div>
-                    <div
-                        class="github-status <?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? 'enabled' : 'disabled'; ?>">
-                        <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
-                            ✅ GitHub Sync: <?php echo htmlspecialchars($githubOwner . '/' . $githubRepo); ?>
-                        <?php else: ?>
-                            ⚠️ GitHub Sync: Disabled
-                        <?php endif; ?>
+                    <div class="header-wrapper">
+                        <div class="header-bottom-row">
+                            <div
+                                class="github-status <?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? 'enabled' : 'disabled'; ?>">
+                                <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
+                                    ✅ GitHub Sync: <a
+                                        href="https://github.com/<?php echo htmlspecialchars($githubOwner . '/' . $githubRepo); ?>"
+                                        style="text-decoration: none; color: inherit;"
+                                        target="_blank"><?php echo htmlspecialchars($githubOwner . '/' . $githubRepo); ?></a>
+                                <?php else: ?>
+                                    ⚠️ GitHub Sync: Disabled
+                                <?php endif; ?>
+                            </div>
+                            <a href="?logout=1" class="logout-btn"> <svg class="logout-icon"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none"
+                                    stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
+                                    <!-- Half Circle (using M start, A arc, Z close) -->
+                                    <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
+                                    <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round">
+                                    </polyline>
+                                    <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
+                                </svg></a>
+                            <div class="per-page-container">
+                                <form method="GET" id="perPageForm">
+                                    <!-- Preserve search setting when changing items per page -->
+                                    <?php if ($search): ?>
+                                        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+                                    <?php endif; ?>
+                                    <label for="perPage">Goats/Page</label>
+                                    <select id="perPage" name="perPage">
+                                        <?php foreach ($allowedPerPage as $option): ?>
+                                            <option value="<?php echo $option; ?>" <?php echo $perPage == $option ? 'selected' : ''; ?>>
+                                                <?php echo $option; ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <a href="?logout=1" class="logout-btn">Logout</a>
             </div>
 
             <?php if ($message): ?>
@@ -2440,67 +2791,24 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             <div class="controls">
                 <div class="controls-grid">
-                    <div class="control-section">
-                        <h3>Add Goat from URL</h3>
-                        <form method="POST" id="addGoatForm">
-                            <input type="hidden" name="action" value="add">
-                            <div class="form-content">
-                                <div class="form-group">
-                                    <label for="url">Image URL:</label>
-                                    <input type="url" id="url" name="url" placeholder="Giphy URL or direct GIF URL"
-                                        required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="tags">Tags (optional):</label>
-                                    <input type="text" id="tags" name="tags"
-                                        placeholder="funny, cute, dancing (comma-separated)">
-                                    <small
-                                        style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                                        🏷️ Add tags to make goats easier to find
-                                    </small>
-                                </div>
-                                <small style="color: var(--text-muted); font-size: 12px; margin-top: 10px; display: block;">
-                                    🔗 <strong>Giphy:</strong> Uses Giphy ID (e.g., cMso9wDwqSy3e)<br>
-                                    🌐 <strong>Direct:</strong> Uses URL hash (prevents duplicates)<br>
-                                    <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
-                                        + GitHub sync
-                                    <?php endif; ?>
-                                </small>
-                            </div>
-                            <div class="form-buttons">
-                                <button type="submit" class="btn success" id="addGoatBtn">
-                                    <?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?>
-                                        📥 Add & Sync to GitHub
-                                    <?php else: ?>
-                                        📥 Add Goat
-                                    <?php endif; ?>
-                                </button>
-                            </div>
-                        </form>
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <button type="button" class="action-btn" onclick="showAddGoatModal()">
+                            📥 Add Goat
+                        </button>
+                        <button type="button" class="action-btn search" onclick="showSearchModal()">
+                            🔍 Find Goat
+                        </button>
                     </div>
 
-                    <div class="control-section">
-                        <h3>Find Goat</h3>
-                        <form method="GET">
-                            <div class="form-content">
-                                <div class="form-group">
-                                    <label for="search">Search by ID or Tags:</label>
-                                    <input type="text" id="search" name="search" placeholder="Enter goat ID or tag..."
-                                        value="<?php echo htmlspecialchars($search); ?>">
-                                    <small
-                                        style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                                        🔍 Search Giphy IDs, url-HASH patterns, or tags like "funny", "cute"
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="form-buttons">
-                                <?php if ($search): ?>
-                                    <a href="?" class="btn btn-secondary">Clear</a>
-                                <?php endif; ?>
-                                <button type="submit" class="btn">🔍 Search</button>
-                            </div>
-                        </form>
-                    </div>
+                    <!-- Clear Search Button (if search is active) -->
+                    <?php if ($search): ?>
+                        <div class="clear-search-container">
+                            <a href="?<?php echo $perPage != 12 ? 'perPage=' . $perPage : ''; ?>" class="btn btn-secondary">
+                                Clear Search
+                            </a>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -2544,7 +2852,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
                                 <!-- Actual image -->
                                 <img data-src="../goats/<?php echo htmlspecialchars($goat['id']); ?>.gif" alt="Goat GIF"
-                                    class="goat-gif lazy-image" loading="lazy"
+                                    class="goat-gif lazy-image" loading="lazy" width="350" height="220"
                                     data-goat-id="<?php echo htmlspecialchars($goat['id']); ?>">
                             </div>
                             <div class="goat-info">
@@ -2591,7 +2899,15 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 <?php if ($totalPages > 1): ?>
                     <div class="pagination">
                         <?php
-                        $searchParam = $search ? '&search=' . urlencode($search) : '';
+                        // Build URL parameters string to preserve search and perPage settings
+                        $urlParams = [];
+                        if ($search) {
+                            $urlParams[] = 'search=' . urlencode($search);
+                        }
+                        if ($perPage != 12) {
+                            $urlParams[] = 'perPage=' . $perPage;
+                        }
+                        $paramString = !empty($urlParams) ? '&' . implode('&', $urlParams) : '';
 
                         // Enhanced pagination logic to limit to maximum 8 buttons total
                         $maxButtons = 8;
@@ -2627,31 +2943,91 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                         ?>
 
                         <?php if ($hasFirst): ?>
-                            <a href="?page=1<?php echo $searchParam; ?>">First</a>
+                            <a href="?page=1<?php echo $paramString; ?>">First</a>
                         <?php endif; ?>
 
                         <?php if ($hasPrevious): ?>
-                            <a href="?page=<?php echo $page - 1; ?><?php echo $searchParam; ?>">Prev</a>
+                            <a href="?page=<?php echo $page - 1; ?><?php echo $paramString; ?>">Prev</a>
                         <?php endif; ?>
 
                         <?php for ($i = $startPage; $i <= $endPage; $i++): ?>
                             <?php if ($i == $page): ?>
                                 <span class="current"><?php echo $i; ?></span>
                             <?php else: ?>
-                                <a href="?page=<?php echo $i; ?><?php echo $searchParam; ?>"><?php echo $i; ?></a>
+                                <a href="?page=<?php echo $i; ?><?php echo $paramString; ?>"><?php echo $i; ?></a>
                             <?php endif; ?>
                         <?php endfor; ?>
 
                         <?php if ($hasNext): ?>
-                            <a href="?page=<?php echo $page + 1; ?><?php echo $searchParam; ?>">Next</a>
+                            <a href="?page=<?php echo $page + 1; ?><?php echo $paramString; ?>">Next</a>
                         <?php endif; ?>
 
                         <?php if ($hasLast): ?>
-                            <a href="?page=<?php echo $totalPages; ?><?php echo $searchParam; ?>">Last</a>
+                            <a href="?page=<?php echo $totalPages; ?><?php echo $paramString; ?>">Last</a>
                         <?php endif; ?>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
+        </div>
+
+        <!-- Add Goat Modal -->
+        <div id="addGoatModal" class="modal form-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📥 Add Goat from URL</h2>
+                    <p>Add a new goat from Giphy or any direct image URL</p>
+                </div>
+                <form method="POST" id="addGoatForm">
+                    <input type="hidden" name="action" value="add">
+                    <div class="form-group">
+                        <label for="url">Image URL:</label>
+                        <input type="url" id="url" name="url" placeholder="Giphy URL or direct GIF URL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tags">Tags (optional):</label>
+                        <input type="text" id="tags" name="tags" placeholder="funny, cute, dancing (comma-separated)">
+                        <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
+                            🏷️ Add tags to make goats easier to find
+                        </small>
+                    </div>
+                    <small style="color: var(--text-muted); font-size: 12px; margin-top: 10px; display: block;">
+                        🔗 <strong>Giphy:</strong> Uses Giphy ID (e.g., cMso9wDwqSy3e)<br>
+                        🌐 <strong>Direct:</strong> Uses URL hash (prevents duplicates)<br>
+                    </small>
+                    <div class="form-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="hideAddGoatModal()">Cancel</button>
+                        <button type="submit" class="btn success" id="addGoatBtn">📥 Add Goat</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Search Modal -->
+        <div id="searchModal" class="modal form-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>🔍 Find Goat</h2>
+                    <p>Search for goats by ID or tags</p>
+                </div>
+                <form method="GET" id="searchForm">
+                    <!-- Preserve items per page setting when searching -->
+                    <?php if ($perPage != 12): ?>
+                        <input type="hidden" name="perPage" value="<?php echo $perPage; ?>">
+                    <?php endif; ?>
+                    <div class="form-group">
+                        <label for="search">Search by ID or Tags:</label>
+                        <input type="text" id="search" name="search" placeholder="Enter goat ID or tag..."
+                            value="<?php echo htmlspecialchars($search); ?>">
+                        <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
+                            🔍 Search Giphy IDs, url-HASH patterns, or tags
+                        </small>
+                    </div>
+                    <div class="form-buttons">
+                        <button type="button" class="btn btn-secondary" onclick="hideSearchModal()">Cancel</button>
+                        <button type="submit" class="btn">🔍 Search</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Delete Confirmation Modal -->
@@ -2664,8 +3040,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
                     <button type="button" class="btn danger" onclick="confirmDelete()">
-                        🗑️ Delete<?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?> &
-                            Sync<?php endif; ?>
+                        🗑️ Delete
                     </button>
                 </div>
             </div>
@@ -2686,17 +3061,16 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
                 <div class="add-tags-container">
                     <h4>Add New Tags:</h4>
-                    <input type="text" id="newTagsInput" placeholder="Enter new tags (comma-separated)">
+                    <input type="text" id="newTagsInput" placeholder="Enter new tags">
                     <small style="color: var(--text-muted); font-size: 12px; margin-top: 5px; display: block;">
-                        💡 Type tags and press Enter or comma to add them
+                        💡 Type tags and press Enter to add them
                     </small>
                 </div>
 
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideEditTagsModal()">Cancel</button>
                     <button type="button" class="btn success" onclick="saveTagChanges()">
-                        💾 Save Tags<?php if (checkGitHubConfig($githubToken, $githubOwner, $githubRepo)): ?> &
-                            Sync<?php endif; ?>
+                        💾 Save Tags
                     </button>
                 </div>
             </div>
@@ -2721,12 +3095,43 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         let currentEditingGoatId = '';
         let currentTags = [];
 
-        // Enhanced Lazy Loading with Intersection Observer
+        // Modal functions for Add Goat
+        function showAddGoatModal() {
+            document.getElementById('addGoatModal').classList.add('show');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('url').focus();
+        }
+
+        function hideAddGoatModal() {
+            document.getElementById('addGoatModal').classList.remove('show');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            // Reset form
+            document.getElementById('addGoatForm').reset();
+        }
+
+        // Modal functions for Search
+        function showSearchModal() {
+            document.getElementById('searchModal').classList.add('show');
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('search').focus();
+        }
+
+        function hideSearchModal() {
+            document.getElementById('searchModal').classList.remove('show');
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+        }
+
+        // OPTIMIZED Lazy Loading with Intersection Observer - MAXIMUM SPEED
         class LazyImageLoader {
             constructor() {
                 this.imageObserver = null;
                 this.loadedImages = new Set();
                 this.failedImages = new Set();
+                this.loadingImages = new Set();
 
                 this.init();
             }
@@ -2742,7 +3147,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                             }
                         });
                     }, {
-                        // Start loading when image is 100px away from viewport
+                        // Increased rootMargin for faster preloading
                         rootMargin: '100px 0px',
                         threshold: 0.01
                     });
@@ -2769,60 +3174,58 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 const progressBar = container.querySelector('.loading-progress');
                 const goatId = img.dataset.goatId;
 
-                // Skip if already loaded or failed
-                if (this.loadedImages.has(goatId) || this.failedImages.has(goatId)) {
+                // Skip if already loaded, failed, or currently loading
+                if (this.loadedImages.has(goatId) ||
+                    this.failedImages.has(goatId) ||
+                    this.loadingImages.has(goatId)) {
                     return;
                 }
 
-                // Show progress bar
+                // Mark as loading
+                this.loadingImages.add(goatId);
+
+                // Show minimal initial progress (no artificial animation)
                 progressBar.style.width = '10%';
 
-                // Create a new image to test loading
-                const testImg = new Image();
+                // Load directly on the actual image element
+                img.onload = () => {
+                    // Image loaded successfully - show IMMEDIATELY with no delays
+                    img.classList.add('loaded');
+                    placeholder.classList.add('hidden');
+                    errorElement.classList.remove('visible');
 
-                testImg.onload = () => {
-                    // Image loaded successfully
-                    progressBar.style.width = '100%';
+                    // Hide progress bar immediately - no artificial delay
+                    progressBar.style.width = '0%';
 
-                    setTimeout(() => {
-                        img.src = img.dataset.src;
-                        img.classList.add('loaded');
-                        placeholder.classList.add('hidden');
-                        errorElement.classList.remove('visible');
-                        progressBar.style.width = '0%';
-
-                        this.loadedImages.add(goatId);
-                    }, 200);
+                    // Update tracking
+                    this.loadedImages.add(goatId);
+                    this.loadingImages.delete(goatId);
                 };
 
-                testImg.onerror = () => {
+                img.onerror = () => {
                     // Image failed to load
                     progressBar.style.width = '0%';
                     placeholder.classList.add('hidden');
                     errorElement.classList.add('visible');
                     img.classList.add('error');
 
+                    // Update tracking
                     this.failedImages.add(goatId);
+                    this.loadingImages.delete(goatId);
                 };
 
-                // Simulate progress
-                let progress = 10;
-                const progressInterval = setInterval(() => {
-                    progress += Math.random() * 20;
-                    if (progress >= 90) {
-                        progress = 90;
-                        clearInterval(progressInterval);
-                    }
-                    progressBar.style.width = progress + '%';
-                }, 100);
+                // Start loading immediately - no artificial progress animation
+                img.src = img.dataset.src;
 
-                // Start loading
-                testImg.src = img.dataset.src;
+                // Simple progress indication that completes when image actually loads
+                // This just provides visual feedback but doesn't delay anything
+                progressBar.style.width = '50%';
             }
 
             retryImage(goatId) {
-                // Remove from failed set and retry
+                // Remove from failed and loading sets
                 this.failedImages.delete(goatId);
+                this.loadingImages.delete(goatId);
 
                 const img = document.querySelector(`[data-goat-id="${goatId}"]`);
                 if (img) {
@@ -2832,10 +3235,11 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
                     // Reset states
                     img.classList.remove('error', 'loaded');
+                    img.src = ''; // Clear any previous src
                     placeholder.classList.remove('hidden');
                     errorElement.classList.remove('visible');
 
-                    // Retry loading
+                    // Retry loading immediately
                     this.loadImage(img);
                 }
             }
@@ -2847,12 +3251,62 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     this.loadImage(img);
                 });
             }
+
+            // Method to aggressively preload images for fastest experience
+            preloadCriticalImages() {
+                const criticalImages = document.querySelectorAll('.lazy-image:not(.loaded)');
+                // Load first 6 images immediately if they're anywhere near the viewport
+                Array.from(criticalImages).slice(0, 6).forEach(img => {
+                    const rect = img.getBoundingClientRect();
+                    if (rect.top < window.innerHeight + 200) {
+                        this.loadImage(img);
+                    }
+                });
+            }
+
+            // Aggressive preloading method
+            preloadAllVisibleImages() {
+                const allImages = document.querySelectorAll('.lazy-image:not(.loaded)');
+                allImages.forEach(img => {
+                    const rect = img.getBoundingClientRect();
+                    // Preload anything within 300px of viewport
+                    if (rect.top < window.innerHeight + 300 && rect.bottom > -300) {
+                        this.loadImage(img);
+                    }
+                });
+            }
         }
 
         // Initialize lazy loading when DOM is ready
         document.addEventListener('DOMContentLoaded', () => {
             window.lazyLoader = new LazyImageLoader();
+
+            // Immediately preload critical images - no delay
+            window.lazyLoader.preloadCriticalImages();
+
+            // Optional: Aggressively preload all visible images after 50ms
+            setTimeout(() => {
+                window.lazyLoader.preloadAllVisibleImages();
+            }, 50);
         });
+
+        // Optimized scroll handling for maximum responsiveness
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            // Immediate action for scroll
+            if (window.lazyLoader) {
+                window.lazyLoader.preloadAllVisibleImages();
+            }
+
+            // Debounced action for bottom detection
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 400) {
+                    // User is near bottom - could implement next page preloading
+                    console.log('Near bottom - could preload next page');
+                }
+            }, 50);
+        }, { passive: true }); // Passive listener for better performance
 
         // Global retry function for error buttons
         function retryImage(button) {
@@ -2864,22 +3318,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 window.lazyLoader.retryImage(goatId);
             }
         }
-
-        // Performance optimization: Preload next page images when user reaches bottom
-        function preloadNextPageImages() {
-            const nextPageLink = document.querySelector('.pagination a[href*="page=' + (<?php echo $page; ?> + 1) + '"]');
-            if (nextPageLink && 'IntersectionObserver' in window) {
-                // Could implement next page preloading here
-                console.log('Could preload next page images');
-            }
-        }
-
-        // Check if user is near bottom of page for preloading
-        window.addEventListener('scroll', () => {
-            if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 1000) {
-                preloadNextPageImages();
-            }
-        });
 
         // Copy to clipboard functionality
         function copyToClipboard(text, button) {
@@ -3054,9 +3492,32 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     }
                 });
             }
+
+            // Auto-submit form when items per page changes
+            const perPageSelect = document.getElementById('perPage');
+            if (perPageSelect) {
+                perPageSelect.addEventListener('change', function () {
+                    // Add loading state
+                    this.classList.add('loading');
+
+                    // Get the perPage form this select belongs to
+                    const form = document.getElementById('perPageForm');
+                    if (form) {
+                        // Reset to page 1 when changing items per page
+                        const pageInput = document.createElement('input');
+                        pageInput.type = 'hidden';
+                        pageInput.name = 'page';
+                        pageInput.value = '1';
+                        form.appendChild(pageInput);
+
+                        // Submit the form
+                        form.submit();
+                    }
+                });
+            }
         });
 
-        // Existing modal and form functions
+        // Delete modal functions
         function showDeleteModal(goatId) {
             goatToDelete = goatId;
             document.getElementById('deleteModal').classList.add('show');
@@ -3078,14 +3539,25 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         }
 
-        // Close modal when clicking outside
+        // Close modals when clicking outside
+        document.getElementById('addGoatModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                hideAddGoatModal();
+            }
+        });
+
+        document.getElementById('searchModal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                hideSearchModal();
+            }
+        });
+
         document.getElementById('deleteModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 hideDeleteModal();
             }
         });
 
-        // Close edit tags modal when clicking outside
         document.getElementById('editTagsModal').addEventListener('click', function (e) {
             if (e.target === this) {
                 hideEditTagsModal();
@@ -3095,6 +3567,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         // Close modal with Escape key
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') {
+                hideAddGoatModal();
+                hideSearchModal();
                 hideDeleteModal();
                 hideEditTagsModal();
             }
