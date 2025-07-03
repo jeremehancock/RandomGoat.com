@@ -1007,8 +1007,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             flex-shrink: 0;
             align-self: flex-start;
             position: absolute;
-            right: 50px;
-            top: 40px;
+            right: 0;
         }
 
         .logout-btn:hover {
@@ -2785,6 +2784,18 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             <div class="header">
                 <div class="header-content">
                     <div class="header-wrapper">
+                        <div style="position: relative;">
+                            <a href="?logout=1" class="logout-btn"> <svg class="logout-icon"
+                                    xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none"
+                                    stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
+                                    <!-- Half Circle (using M start, A arc, Z close) -->
+                                    <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
+                                    <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round">
+                                    </polyline>
+                                    <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
+                                </svg>
+                            </a>
+                        </div>
                         <h1><a href="/admin" style="text-decoration: none; color: white;">🐐 Random Goat Admin</h1></a>
                     </div>
                     <div class="stats">
@@ -2809,15 +2820,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                     ⚠️ GitHub Sync: Disabled
                                 <?php endif; ?>
                             </div>
-                            <a href="?logout=1" class="logout-btn"> <svg class="logout-icon"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none"
-                                    stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
-                                    <!-- Half Circle (using M start, A arc, Z close) -->
-                                    <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
-                                    <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round">
-                                    </polyline>
-                                    <line x1="19" y1="12" x2="7" y2="12" stroke-linecap="round"></line>
-                                </svg></a>
                             <div class="per-page-container">
                                 <form method="GET" id="perPageForm">
                                     <!-- Preserve search setting when changing items per page -->
