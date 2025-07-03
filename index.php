@@ -1236,11 +1236,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                     console.log(`Loaded ${this.gifIds.length} goat gifs from JSON!`);
 
-                    // Log sample data for debugging
-                    if (this.goatsData.length > 0) {
-                        console.log('Sample goat data:', this.goatsData[0]);
-                    }
-
                 } catch (error) {
                     console.log('JSON loading failed, using fallback gif IDs...', error.message);
 
