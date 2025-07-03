@@ -2944,9 +2944,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
                                 <div class="goat-actions">
                                     <div class="goat-links">
-                                        <a href="https://randomgoat.com?id=<?php echo htmlspecialchars($goat['id']); ?>"
-                                            target="_blank" class="goat-link randomgoat tooltip"
-                                            data-tooltip="View on Random Goat">🐐</a>
+                                        <a href="https://rdgt.co/<?php echo htmlspecialchars($goat['short_id']); ?>" target="_blank"
+                                            class="goat-link randomgoat tooltip" data-tooltip="View on Random Goat">🐐</a>
                                     </div>
                                     <div class="goat-action-buttons">
                                         <button type="button" class="btn warning btn-small"
