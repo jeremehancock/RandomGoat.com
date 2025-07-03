@@ -1,14 +1,13 @@
 <?php
-// Parse clean URLs like domain.com/gifid or domain.com/gifid/season
+// Parse clean URLs like domain.com/gifid (with optional ?season=christmas)
 $request_uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($request_uri, PHP_URL_PATH);
 
 // Remove leading slash and split path into components
 $path_parts = array_filter(explode('/', trim($path, '/')));
 
-// Extract gif ID and season from URL path
+// Extract gif ID from URL path
 $gif_id = '';
-$season = '';
 
 if (!empty($path_parts)) {
     // First part is the gif ID (if it's not a known route like 'embed.php')
@@ -17,12 +16,13 @@ if (!empty($path_parts)) {
     // Skip if it's a known file or route
     if (!in_array($first_part, ['embed.php', 'data', 'goats', 'images', 'favicon.ico'])) {
         $gif_id = htmlspecialchars($first_part);
-
-        // Second part could be season
-        if (isset($path_parts[1])) {
-            $season = htmlspecialchars($path_parts[1]);
-        }
     }
+}
+
+// Get season from query parameters (e.g., ?season=christmas)
+$season = '';
+if (isset($_GET['season']) && !empty($_GET['season'])) {
+    $season = htmlspecialchars($_GET['season']);
 }
 
 // Set content type
