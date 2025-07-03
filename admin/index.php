@@ -3580,7 +3580,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             const originalText = btn.innerHTML;
 
             btn.classList.add('loading');
-            btn.innerHTML = '<?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? "Processing & Syncing..." : "Processing..."; ?>';
+            btn.innerHTML = '<?php echo checkGitHubConfig($githubToken, $githubOwner, $githubRepo) ? "Processing..." : "Processing..."; ?>';
             btn.disabled = true;
 
             // Reset button state if form submission fails or returns to page
