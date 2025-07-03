@@ -151,7 +151,7 @@ function downloadGifFromUrl($url, $destinationPath)
     }
 
     // Check if content type is appropriate (allow various image types that might be GIFs)
-    $allowedTypes = ['image/gif', 'image/webp', 'image/png', 'image/jpeg'];
+    $allowedTypes = ['image/gif'];
     $isValidContentType = false;
     foreach ($allowedTypes as $type) {
         if (strpos(strtolower($contentType), $type) !== false) {
@@ -168,12 +168,9 @@ function downloadGifFromUrl($url, $destinationPath)
     // Check for GIF signature (GIF87a or GIF89a) or other image formats
     $signature = substr($gifData, 0, 6);
     $isGif = (substr($signature, 0, 3) === 'GIF');
-    $isPng = (substr($gifData, 0, 8) === "\x89PNG\x0D\x0A\x1A\x0A");
-    $isJpeg = (substr($gifData, 0, 3) === "\xFF\xD8\xFF");
-    $isWebp = (substr($gifData, 0, 4) === 'RIFF' && substr($gifData, 8, 4) === 'WEBP');
 
-    if (!$isGif && !$isPng && !$isJpeg && !$isWebp) {
-        return ['success' => false, 'error' => "File does not appear to be a valid image format. Please ensure the URL points directly to a GIF, PNG, JPEG, or WebP file."];
+    if (!$isGif) {
+        return ['success' => false, 'error' => "File does not appear to be a valid image format. Please ensure the URL points directly to a GIF file."];
     }
 
     // Try to save the file
@@ -183,7 +180,7 @@ function downloadGifFromUrl($url, $destinationPath)
         return ['success' => false, 'error' => "Failed to save file to local directory."];
     }
 
-    $fileType = $isGif ? 'GIF' : ($isPng ? 'PNG' : ($isJpeg ? 'JPEG' : 'WebP'));
+    $fileType = 'GIF';
 
     return [
         'success' => true,
@@ -514,6 +511,14 @@ function checkGitHubConfig($githubToken, $githubOwner, $githubRepo)
     return true;
 }
 
+
+function createShortId($longId)
+{
+    // Create SHA256 hash and take first 5 characters
+    $hash = hash('sha256', $longId);
+    return substr($hash, 0, 5);
+}
+
 // Handle form submissions (only if logged in)
 $message = '';
 $messageType = '';
@@ -537,10 +542,10 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                             // Try to download the GIF from Giphy
                             $gifPath = $goatsDir . $id . '.gif';
                             $downloadResult = downloadGifFromGiphy($id, $gifPath);
-
+                            $shortId = createShortId($id);
                             if ($downloadResult['success']) {
                                 // Add to local goats.json
-                                $goatsData[] = ['id' => $id, 'tags' => $tags];
+                                $goatsData[] = ['id' => $id, 'short_id' => $shortId, 'tags' => $tags];
                                 $localSaveSuccess = saveGoatsData($dataFile, $goatsData);
 
                                 if ($localSaveSuccess) {
@@ -600,7 +605,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                         // Handle as direct URL
                         $urlHash = generateUrlHash($url, 12);
                         $id = 'url-' . $urlHash;
-
+                        $shortId = createShortId($id);
                         // Check if this URL has already been added
                         if (findGoatById($goatsData, $id) !== false) {
                             $message = "This URL has already been added to the gallery! ID: {$id}";
@@ -612,7 +617,7 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             if ($downloadResult['success']) {
                                 // Add to local goats.json
-                                $goatsData[] = ['id' => $id, 'tags' => $tags];
+                                $goatsData[] = ['id' => $id, 'short_id' => $shortId, 'tags' => $tags];
                                 $localSaveSuccess = saveGoatsData($dataFile, $goatsData);
 
                                 if ($localSaveSuccess) {
@@ -929,6 +934,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             background: rgba(5, 150, 105, 0.15);
             color: #10b981;
             border: 1px solid rgba(5, 150, 105, 0.3);
+            align-self: flex-end;
         }
 
         .github-status.disabled {
@@ -943,7 +949,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 120px;
         }
 
         .per-page-container label {
@@ -1106,7 +1111,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 120px;
         }
 
         .per-page-container label {
@@ -2737,8 +2741,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                         <?php else: ?>
                             Total Goats: <?php echo count($allGoatsData); ?> |
                         <?php endif; ?>
-                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?> |
-                        Showing <?php echo $perPage; ?> per page
+                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
                     </div>
                     <div class="header-wrapper">
                         <div class="header-bottom-row">
