@@ -1147,7 +1147,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                         if (goatData) {
                             gifId = goatData.id; // Always use the full ID for loading
-                            console.log(`Found goat by ${goatData.id === this.specificGifId ? 'full ID' : 'short ID'}: ${this.specificGifId} -> ${gifId}`);
                         } else {
                             console.warn(`No goat found for ID/short_id: ${this.specificGifId}, falling back to random`);
                             gifId = this.getRandomGifId();
@@ -1171,7 +1170,6 @@ header('Content-Type: text/html; charset=UTF-8');
                     this.performance.loadTimes.push(loadTime);
 
                     this.firstGifReady = true;
-                    console.log(`First gif loaded in ${loadTime}ms`);
                 } catch (error) {
                     console.error('Error preparing first gif:', error);
                     this.performance.failureRate += 0.1;
@@ -1635,8 +1633,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                 // Reset progress bar to 0% to show fresh start
                 this.elements.progressBar.style.width = '0%';
-
-                console.log(`Timer paused - will resume with fresh 20 seconds for current goat`);
             }
 
             resumeTimerFromModal() {
@@ -1657,7 +1653,6 @@ header('Content-Type: text/html; charset=UTF-8');
                         // Always resume with a full 20-second timer for the same goat
                         this.countdown = 20;
                         this.startTimer();
-                        console.log('Timer resumed with full 20 seconds for current goat');
                     }, 50); // Small delay to prevent any interference
                 }
             }
@@ -1677,13 +1672,11 @@ header('Content-Type: text/html; charset=UTF-8');
                     this.elements.layer1.classList.remove('active');
                 }
 
-                console.log(`Cleaned up layer states - layer${this.currentLayer} is active`);
             }
 
             async nextGif() {
                 // Comprehensive checks to prevent unwanted gif changes
                 if (this.isLoading || this.isModalPaused) {
-                    console.log('nextGif blocked - modal paused or loading');
                     return;
                 }
 
@@ -1726,7 +1719,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                     // Double-check we're not paused before proceeding with transition
                     if (this.isModalPaused) {
-                        console.log('nextGif aborted - modal became paused during loading');
                         this.isLoading = false;
                         return;
                     }
@@ -1741,7 +1733,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                         // Final check before transition
                         if (this.isModalPaused) {
-                            console.log('nextGif aborted before transition - modal became paused');
                             this.isLoading = false;
                             return;
                         }
@@ -1767,7 +1758,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                         // Check again before proceeding
                         if (this.isModalPaused) {
-                            console.log('nextGif aborted during loading - modal became paused');
                             this.hideLoadingState();
                             this.isLoading = false;
                             return;
@@ -1780,7 +1770,6 @@ header('Content-Type: text/html; charset=UTF-8');
 
                         // Final check before transition
                         if (this.isModalPaused) {
-                            console.log('nextGif aborted before transition - modal became paused');
                             this.isLoading = false;
                             return;
                         }
@@ -1828,13 +1817,11 @@ header('Content-Type: text/html; charset=UTF-8');
             handleInteraction(event) {
                 // Prevent interaction if modal is open - most important check
                 if (this.isModalPaused) {
-                    console.log('Interaction blocked - modal is open and paused');
                     return;
                 }
 
                 // Prevent stuck loading states
                 if (this.isLoading) {
-                    console.log('Interaction blocked - currently loading');
                     return;
                 }
 
@@ -1845,7 +1832,6 @@ header('Content-Type: text/html; charset=UTF-8');
                     target.closest('.share-button') ||
                     target.closest('.embed-button')
                 )) {
-                    console.log('Interaction on modal element - not triggering gif change');
                     return;
                 }
 
@@ -1978,7 +1964,6 @@ header('Content-Type: text/html; charset=UTF-8');
                 this.elements.shareModalOverlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
 
-                console.log('Share modal opened - timer paused and will reset on close');
             }
 
             closeShareModal() {
@@ -1992,7 +1977,6 @@ header('Content-Type: text/html; charset=UTF-8');
                 // Use a longer delay to ensure modal close events don't interfere
                 setTimeout(() => {
                     this.resumeTimerFromModal();
-                    console.log('Share modal closed - timer resumed after delay');
                 }, 100); // Delay to prevent interference
             }
 
