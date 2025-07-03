@@ -1,3 +1,33 @@
+<?php
+// Parse clean URLs like domain.com/gifid or domain.com/gifid/season
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+
+// Remove leading slash and split path into components
+$path_parts = array_filter(explode('/', trim($path, '/')));
+
+// Extract gif ID and season from URL path
+$gif_id = '';
+$season = '';
+
+if (!empty($path_parts)) {
+    // First part is the gif ID (if it's not a known route like 'embed.php')
+    $first_part = $path_parts[0];
+
+    // Skip if it's a known file or route
+    if (!in_array($first_part, ['embed.php', 'data', 'goats', 'images', 'favicon.ico'])) {
+        $gif_id = htmlspecialchars($first_part);
+
+        // Second part could be season
+        if (isset($path_parts[1])) {
+            $season = htmlspecialchars($path_parts[1]);
+        }
+    }
+}
+
+// Set content type
+header('Content-Type: text/html; charset=UTF-8');
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -828,6 +858,12 @@
     </div>
 
     <script>
+        // PHP-parsed URL parameters - set by server
+        window.phpUrlParams = {
+            gifId: <?= json_encode($gif_id) ?>,
+            season: <?= json_encode($season) ?>
+        };
+
         // Set CSS custom property for viewport height on mobile
         function setVH() {
             const vh = window.innerHeight * 0.01;
@@ -867,6 +903,7 @@
                 this.firstGifReady = false;
                 this.forcedSeason = null;
                 this.currentGifId = null;
+                this.currentGoatData = null; // Store current goat data
 
                 // Modal pause state tracking
                 this.isModalPaused = false;
@@ -965,10 +1002,15 @@
             }
 
             parseUrlParams() {
-                const urlParams = new URLSearchParams(window.location.search);
-                this.specificGifId = urlParams.get('id');
+                // Use PHP-parsed parameters from server
+                this.specificGifId = window.phpUrlParams.gifId || null;
+                const seasonParam = window.phpUrlParams.season || null;
 
-                const seasonParam = urlParams.get('season');
+                if (this.specificGifId) {
+                    // Set the search ID - we'll resolve it to a full ID after loading the data
+                    this.isShowingSpecificGif = true;
+                }
+
                 if (seasonParam) {
                     const normalizedSeason = seasonParam.toLowerCase();
                     if (['christmas', 'xmas', 'holiday'].includes(normalizedSeason)) {
@@ -979,10 +1021,23 @@
                         this.forcedSeason = 'normal';
                     }
                 }
+            }
 
-                if (this.specificGifId) {
-                    this.isShowingSpecificGif = true;
+            // New method to find goat by either full ID or short ID
+            findGoatByIdOrShortId(searchId) {
+                if (!searchId || !this.goatsData || this.goatsData.length === 0) {
+                    return null;
                 }
+
+                // First try to find by full ID
+                let goat = this.goatsData.find(goat => goat.id === searchId);
+
+                // If not found, try to find by short_id
+                if (!goat) {
+                    goat = this.goatsData.find(goat => goat.short_id === searchId);
+                }
+
+                return goat;
             }
 
             async init() {
@@ -1084,16 +1139,30 @@
             async prepareFirstGif() {
                 try {
                     let gifId;
+                    let goatData = null;
 
                     if (this.specificGifId) {
-                        gifId = this.specificGifId;
+                        // Try to find the goat by either full ID or short ID
+                        goatData = this.findGoatByIdOrShortId(this.specificGifId);
+
+                        if (goatData) {
+                            gifId = goatData.id; // Always use the full ID for loading
+                            console.log(`Found goat by ${goatData.id === this.specificGifId ? 'full ID' : 'short ID'}: ${this.specificGifId} -> ${gifId}`);
+                        } else {
+                            console.warn(`No goat found for ID/short_id: ${this.specificGifId}, falling back to random`);
+                            gifId = this.getRandomGifId();
+                            goatData = this.getGoatData(gifId);
+                        }
                     } else {
                         gifId = this.getRandomGifId();
+                        goatData = this.getGoatData(gifId);
                     }
 
                     if (!gifId) throw new Error('No gif ID available');
 
                     this.currentGifId = gifId;
+                    this.currentGoatData = goatData;
+
                     const startTime = Date.now();
                     await this.loadGifToLayerWithFallback(gifId, this.elements.layer1);
 
@@ -1179,9 +1248,9 @@
 
                     // Fallback data in JSON format
                     this.goatsData = [
-                        { "id": "i2KjyMsyb2L3G", "tags": [] },
-                        { "id": "6qbvtoTgXyoy4", "tags": [] },
-                        { "id": "3bjpYEM2wLeqQ", "tags": [] }
+                        { "id": "i2KjyMsyb2L3G", "tags": [], "short_id": "i2K" },
+                        { "id": "6qbvtoTgXyoy4", "tags": [], "short_id": "6qb" },
+                        { "id": "3bjpYEM2wLeqQ", "tags": [], "short_id": "3bj" }
                     ];
                     this.gifIds = this.goatsData.map(goat => goat.id);
                 }
@@ -1630,6 +1699,7 @@
                     let gifId = null;
                     let gifUrl = null;
                     let isFromCache = false;
+                    let goatData = null;
 
                     // Try to get from cache first
                     const cachedGif = this.getNextCachedGif();
@@ -1639,11 +1709,15 @@
                         gifUrl = cachedGif.url;
                         isFromCache = true;
                         this.currentGifId = gifId;
+                        goatData = this.getGoatData(gifId);
+                        this.currentGoatData = goatData;
                     } else {
                         // Fallback to loading fresh
                         gifId = this.getRandomGifId();
                         if (!gifId) throw new Error('No gif ID available');
                         this.currentGifId = gifId;
+                        goatData = this.getGoatData(gifId);
+                        this.currentGoatData = goatData;
                         isFromCache = false;
                     }
 
@@ -1891,8 +1965,13 @@
                     this.hideLoadingState();
                 }
 
-                // Update the share URL with current gif ID
-                const shareUrl = this.currentGifId ? `rdgt.co/${this.currentGifId}` : 'rdgt.co/loading...';
+                // Update the share URL with current gif short_id or fallback to full ID
+                let shareId = this.currentGifId;
+                if (this.currentGoatData && this.currentGoatData.short_id) {
+                    shareId = this.currentGoatData.short_id;
+                }
+
+                const shareUrl = shareId ? `rdgt.co/${shareId}` : 'rdgt.co/loading...';
                 this.elements.shareUrl.textContent = shareUrl;
 
                 // Show the modal
