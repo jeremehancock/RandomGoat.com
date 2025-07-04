@@ -2102,6 +2102,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             .header-content {
                 position: relative;
+                margin-top: -15px;
             }
 
             .header-content h1 {
