@@ -1087,6 +1087,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             border-color: var(--warning);
         }
 
+        /* STICKY CONTROLS - The main update! */
         .controls {
             background: var(--bg-secondary);
             padding: 24px;
@@ -1094,6 +1095,24 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             box-shadow: 0 4px 6px var(--shadow);
             margin-bottom: 20px;
             border: 1px solid var(--border);
+
+            /* Make it sticky */
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+
+            /* Add backdrop blur for modern effect */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+
+            /* Subtle styling to indicate it's floating */
+            transition: all 0.3s ease;
+        }
+
+        /* Enhanced shadow when scrolled */
+        .controls.scrolled {
+            box-shadow: 0 8px 25px var(--shadow);
+            border-color: var(--accent-primary);
         }
 
         .controls-grid {
@@ -2078,6 +2097,9 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 min-height: 100vh;
                 display: flex;
                 flex-direction: column;
+                /* ENSURE CONTAINER DOESN'T INTERFERE WITH STICKY */
+                overflow: visible !important;
+                position: relative !important;
             }
 
             .header {
@@ -2094,9 +2116,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 margin: 0;
                 padding: 20px 24px 24px 24px;
                 box-shadow: var(--mobile-shadow);
-                position: sticky;
-                top: 0;
-                z-index: 100;
+                /* Remove sticky from header - user only wants controls to stick */
+                position: relative;
                 border-bottom: 1px solid var(--mobile-border);
             }
 
@@ -2211,14 +2232,55 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 transform: scale(1.05);
             }
 
-            /* Enhanced Controls Section */
+            /* MOBILE STICKY CONTROLS - WORKING FIX */
             .controls {
-                margin: 0 20px 20px 20px;
-                padding: 20px;
-                background: var(--mobile-surface);
-                border-radius: 20px;
-                border: 1px solid var(--mobile-border);
-                box-shadow: var(--mobile-shadow);
+                /* FORCE STICKY POSITIONING ON MOBILE */
+                position: -webkit-sticky !important;
+                position: sticky !important;
+                top: 10px !important;
+                z-index: 150 !important;
+
+                /* Mobile-specific adjustments */
+                margin: 0 16px 16px 16px !important;
+                padding: 16px !important;
+                border-radius: 20px !important;
+
+                /* Enhanced backdrop for better visibility */
+                background: rgba(26, 26, 26, 0.95) !important;
+                backdrop-filter: blur(20px) !important;
+                -webkit-backdrop-filter: blur(20px) !important;
+
+                /* Mobile shadow */
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+                border: 1px solid var(--mobile-border) !important;
+
+                /* Ensure hardware acceleration for iOS */
+                transform: translate3d(0, 0, 0) !important;
+                will-change: transform !important;
+
+                /* Additional iOS Safari fixes */
+                -webkit-transform: translate3d(0, 0, 0) !important;
+                isolation: isolate !important;
+            }
+
+            /* Enhanced scrolled state for mobile */
+            .controls.scrolled {
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+                border-color: var(--mobile-accent) !important;
+                background: rgba(22, 22, 24, 0.98) !important;
+            }
+
+            /* Ensure controls stay above other content */
+            .gallery {
+                position: relative;
+                z-index: 1;
+            }
+
+            /* Safe area support for devices with notches */
+            @supports(padding: max(0px)) {
+                .controls {
+                    top: max(10px, env(safe-area-inset-top)) !important;
+                }
             }
 
             .controls-grid {
@@ -2806,6 +2868,33 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         }
 
+        /* Additional fix for very small screens */
+        @media (max-width: 480px) {
+            .controls {
+                top: 8px !important;
+                margin: 0 12px 12px 12px !important;
+                padding: 14px !important;
+            }
+
+            @supports(padding: max(0px)) {
+                .controls {
+                    top: max(8px, env(safe-area-inset-top)) !important;
+                }
+            }
+        }
+
+        /* Fix for iOS Safari specifically */
+        @supports (-webkit-touch-callout: none) {
+            @media (max-width: 768px) {
+                .controls {
+                    position: -webkit-sticky !important;
+                    position: sticky !important;
+                    /* iOS Safari sometimes needs explicit transform */
+                    transform: translate3d(0, 0, 0);
+                }
+            }
+        }
+
         /* Tablet landscape optimizations */
         @media (max-width: 1024px) and (orientation: landscape) and (min-width: 769px) {
             .gallery {
@@ -2983,7 +3072,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 </div>
             <?php endif; ?>
 
-            <div class="controls">
+            <div class="controls" id="stickyControls">
                 <div class="controls-grid">
                     <!-- Action Buttons -->
                     <div class="action-buttons">
@@ -3299,6 +3388,127 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         let currentEditingGoatId = '';
         let currentTags = [];
 
+        // Enhanced sticky controls functionality - MOBILE FOCUSED FIX
+        function initStickyControls() {
+            const controls = document.getElementById('stickyControls');
+            if (!controls) {
+                console.warn('Sticky controls element not found');
+                return;
+            }
+
+            let isScrolled = false;
+            let ticking = false;
+
+            // AGGRESSIVE MOBILE STICKY FIX
+            if (window.innerWidth <= 768) {
+                console.log('Mobile detected - applying aggressive sticky fix');
+
+                // Force remove any conflicting styles
+                controls.style.position = '';
+                controls.style.webkitPosition = '';
+
+                // Apply sticky positioning with maximum priority
+                controls.style.cssText += `
+                    position: -webkit-sticky !important;
+                    position: sticky !important;
+                    top: 10px !important;
+                    z-index: 150 !important;
+                    transform: translate3d(0, 0, 0) !important;
+                    -webkit-transform: translate3d(0, 0, 0) !important;
+                    will-change: transform !important;
+                    isolation: isolate !important;
+                `;
+
+                // Check if the parent container might be interfering
+                const container = controls.parentElement;
+                if (container) {
+                    // Ensure parent doesn't have overflow hidden
+                    const containerStyle = window.getComputedStyle(container);
+                    if (containerStyle.overflow === 'hidden') {
+                        console.warn('Parent container has overflow:hidden, this may break sticky');
+                        container.style.overflow = 'visible';
+                    }
+                }
+
+                console.log('Mobile sticky controls: Aggressive positioning applied');
+                console.log('Final position:', window.getComputedStyle(controls).position);
+                console.log('Final top:', window.getComputedStyle(controls).top);
+                console.log('Final z-index:', window.getComputedStyle(controls).zIndex);
+            }
+
+            function updateStickyState() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                if (scrollTop > 50 && !isScrolled) {
+                    controls.classList.add('scrolled');
+                    isScrolled = true;
+                    if (window.innerWidth <= 768) {
+                        console.log('Mobile sticky controls: scrolled state activated');
+                    }
+                } else if (scrollTop <= 50 && isScrolled) {
+                    controls.classList.remove('scrolled');
+                    isScrolled = false;
+                    if (window.innerWidth <= 768) {
+                        console.log('Mobile sticky controls: scrolled state deactivated');
+                    }
+                }
+
+                ticking = false;
+            }
+
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateStickyState);
+                    ticking = true;
+                }
+            }
+
+            // Use passive scroll listener for better performance
+            window.addEventListener('scroll', requestTick, { passive: true });
+
+            // Handle orientation changes on mobile
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    if (window.innerWidth <= 768) {
+                        // Reapply sticky positioning after orientation change
+                        controls.style.position = 'sticky';
+                        controls.style.top = '10px';
+                        controls.style.webkitPosition = 'sticky';
+                        console.log('Mobile sticky controls: Reapplied after orientation change');
+                    }
+                }, 100);
+            });
+
+            // Handle resize events
+            window.addEventListener('resize', () => {
+                if (window.innerWidth <= 768) {
+                    // Ensure sticky positioning is maintained
+                    controls.style.position = 'sticky';
+                    controls.style.top = '10px';
+                    controls.style.zIndex = '150';
+                    controls.style.webkitPosition = 'sticky';
+                }
+            });
+
+            // Debug info for mobile
+            if (window.innerWidth <= 768) {
+                console.log('Mobile sticky controls initialized');
+                console.log('Controls element:', controls);
+                console.log('Controls computed position:', window.getComputedStyle(controls).position);
+                console.log('Controls computed top:', window.getComputedStyle(controls).top);
+                console.log('Controls computed z-index:', window.getComputedStyle(controls).zIndex);
+
+                // Check if sticky is supported
+                const testSticky = document.createElement('div');
+                testSticky.style.position = 'sticky';
+                if (testSticky.style.position === 'sticky') {
+                    console.log('Mobile sticky: position:sticky is supported');
+                } else {
+                    console.warn('Mobile sticky: position:sticky is NOT supported');
+                }
+            }
+        }
+
         // Modal functions for Add Goat
         function showAddGoatModal() {
             document.getElementById('addGoatModal').classList.add('show');
@@ -3481,16 +3691,68 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         }
 
-        // Initialize lazy loading when DOM is ready
+        // Enhanced initialization with MOBILE STICKY PRIORITY
         document.addEventListener('DOMContentLoaded', () => {
-            window.lazyLoader = new LazyImageLoader();
+            // IMMEDIATE mobile sticky fix - no delays
+            if (window.innerWidth <= 768) {
+                const controls = document.getElementById('stickyControls');
+                if (controls) {
+                    console.log('IMMEDIATE mobile sticky fix applied');
+                    controls.style.cssText += `
+                        position: -webkit-sticky !important;
+                        position: sticky !important;
+                        top: 10px !important;
+                        z-index: 150 !important;
+                        transform: translate3d(0, 0, 0) !important;
+                    `;
+                }
+            }
 
-            // Immediately preload critical images - no delay
+            // Small delay to ensure all styles are loaded
+            setTimeout(() => {
+                initStickyControls();
+
+                // Additional mobile check after styles load
+                if (window.innerWidth <= 768) {
+                    setTimeout(() => {
+                        const controls = document.getElementById('stickyControls');
+                        if (controls) {
+                            const computedStyle = window.getComputedStyle(controls);
+                            console.log('FINAL mobile sticky verification:');
+                            console.log('Position:', computedStyle.position);
+                            console.log('Top:', computedStyle.top);
+                            console.log('Z-index:', computedStyle.zIndex);
+
+                            // LAST RESORT: If sticky still isn't working
+                            if (computedStyle.position !== 'sticky') {
+                                console.error('STICKY STILL FAILED - applying nuclear option');
+                                controls.style.position = 'sticky';
+                                controls.style.webkitPosition = 'sticky';
+                                controls.style.top = '10px';
+                                controls.style.zIndex = '150';
+
+                                // Force reflow
+                                controls.offsetHeight;
+
+                                // Check one more time
+                                const finalStyle = window.getComputedStyle(controls);
+                                console.log('NUCLEAR OPTION result:', finalStyle.position);
+                            } else {
+                                console.log('✅ Mobile sticky positioning is working!');
+                            }
+                        }
+                    }, 100);
+                }
+            }, 10);
+
+            // Initialize other components
+            window.lazyLoader = new LazyImageLoader();
             window.lazyLoader.preloadCriticalImages();
 
-            // Optional: Aggressively preload all visible images after 50ms
             setTimeout(() => {
-                window.lazyLoader.preloadAllVisibleImages();
+                if (window.lazyLoader) {
+                    window.lazyLoader.preloadAllVisibleImages();
+                }
             }, 50);
         });
 
