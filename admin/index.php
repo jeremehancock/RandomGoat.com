@@ -924,6 +924,51 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         .stats {
             color: var(--text-secondary);
             font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-text {
+            flex: 1;
+        }
+
+        /* Per page selector in stats */
+        .stats .per-page-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stats .per-page-container label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .stats .per-page-container select {
+            width: 100%;
+            max-width: 100px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            text-align: center;
+        }
+
+        .stats .per-page-container select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(91, 33, 182, 0.15);
         }
 
         .github-status {
@@ -1999,149 +2044,180 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
         }
 
-        /* Mobile optimizations for faster loading */
+        /* Mobile App-like Design - Enhanced & Professional */
         @media (max-width: 768px) {
+            :root {
+                --mobile-primary: #0a0a0b;
+                --mobile-surface: #161618;
+                --mobile-surface-elevated: #1e1e20;
+                --mobile-accent: #007AFF;
+                --mobile-accent-hover: #0056CC;
+                --mobile-text-primary: #ffffff;
+                --mobile-text-secondary: #8e8e93;
+                --mobile-border: #2c2c2e;
+                --mobile-success: #30d158;
+                --mobile-error: #ff453a;
+                --mobile-warning: #ff9f0a;
+                --mobile-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+                --mobile-shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.4);
+            }
+
             body {
-                background: var(--bg-primary);
+                background: var(--mobile-primary);
+                font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
                 padding: 0;
                 margin: 0;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
             }
 
             .container {
                 padding: 0;
                 max-width: 100%;
                 margin: 0;
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
             }
 
-            .github-status.enabled {
-                align-self: flex-start;
-            }
-
-            .goat-image-container {
-                height: 250px;
-                /* Reduce transforms on mobile for better performance */
-                transform: none;
-                will-change: auto;
-            }
-
-            .goat-item:hover {
-                /* Disable expensive hover effects on mobile */
-                transform: none;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            }
-
-            /* Remove ALL animations and transitions on mobile */
-            .goat-gif {
-                transition: none;
-            }
-
-            .image-placeholder {
-                transition: none;
-                animation: none;
-                background: var(--bg-tertiary);
-            }
-
-            .image-error {
-                transition: none;
-            }
-
-            .loading-progress {
-                transition: none;
-            }
-
-            /* App-like header */
             .header {
-                background: var(--bg-secondary);
+                margin-bottom: 10px;
+            }
+
+            /* App-like Header with Status Bar */
+            .header {
+                background: linear-gradient(135deg, var(--mobile-surface) 0%, var(--mobile-surface-elevated) 100%);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: none;
+                border-radius: 0;
                 margin: 0;
-                border-radius: 0 0 20px 20px;
-                padding: 20px 20px 25px 20px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                padding: 20px 24px 24px 24px;
+                box-shadow: var(--mobile-shadow);
                 position: sticky;
                 top: 0;
                 z-index: 100;
-                backdrop-filter: blur(10px);
-                border: none;
-                border-bottom: 1px solid var(--border);
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 15px;
-                padding-bottom: 10px;
+                border-bottom: 1px solid var(--mobile-border);
             }
 
             .header-content {
-                flex: 1;
-                min-width: 0;
+                position: relative;
             }
 
             .header-content h1 {
                 font-size: 1.75rem;
+                font-weight: 700;
                 margin-bottom: 8px;
-                text-align: left;
             }
 
             .header-wrapper {
-                flex-direction: column;
-                gap: 8px;
+                gap: 16px;
             }
 
             .header-bottom-row {
                 flex-direction: column;
-                gap: 8px;
+                gap: 12px;
                 align-items: stretch;
             }
 
             .stats {
-                text-align: left;
+                font-size: 14px;
+                color: var(--mobile-text-secondary);
+                font-weight: 500;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border-radius: 12px;
+                border: 1px solid var(--mobile-border);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 12px;
+                order: 1;
+            }
+
+            .stats-text {
+                flex: 1;
                 font-size: 13px;
-                margin-bottom: 8px;
+                line-height: 1.4;
+            }
+
+            .stats .per-page-container {
+                flex-shrink: 0;
+                padding: 0;
+                background: transparent;
+                border: none;
+                border-radius: 0;
+            }
+
+            .stats .per-page-container label {
+                font-size: 10px;
+                color: var(--mobile-text-secondary);
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+
+            .stats .per-page-container select {
+                background: var(--mobile-surface);
+                border: 1px solid var(--mobile-border);
+                color: var(--mobile-text-primary);
+                border-radius: 6px;
+                padding: 4px 8px;
+                font-size: 12px;
+                max-width: 60px;
+                text-align: center;
             }
 
             .github-status {
-                font-size: 11px;
-                padding: 4px 8px;
-                align-self: flex-start;
+                padding: 10px 16px;
+                border-radius: 12px;
+                font-size: 13px;
+                font-weight: 600;
+                border: 1px solid;
+                text-align: center;
+                order: 2;
             }
 
-            .per-page-container {
-                align-self: flex-end;
-                min-width: auto;
+            .github-status.enabled {
+                background: rgba(48, 209, 88, 0.1);
+                color: var(--mobile-success);
+                border-color: rgba(48, 209, 88, 0.3);
+                align-self: center;
+                margin-top: 10px;
             }
 
-            .per-page-container label {
-                font-size: 11px;
-                margin-bottom: 4px;
-            }
-
-            .per-page-container select {
-                max-width: 80px;
-                padding: 6px 8px;
-                font-size: 12px;
-                border-radius: 4px;
+            .github-status.disabled {
+                background: rgba(255, 159, 10, 0.1);
+                color: var(--mobile-warning);
+                border-color: rgba(255, 159, 10, 0.3);
             }
 
             .logout-btn {
-                width: auto;
-                max-width: none;
-                margin: 0;
-                font-size: 12px;
-                border-radius: 8px;
+                position: absolute;
+                top: 12px;
+                right: 16px;
                 width: 36px;
                 height: 36px;
-                flex-shrink: 0;
-                align-self: flex-start;
-                position: absolute;
-                right: 10px;
-                top: 10px;
+                background: rgba(255, 69, 58, 0.9);
+                backdrop-filter: blur(10px);
+                border-radius: 18px;
+                font-size: 14px;
+                box-shadow: 0 4px 12px rgba(255, 69, 58, 0.3);
+                z-index: 10;
             }
 
-            /* App-like controls section */
+            .logout-btn:hover {
+                background: var(--mobile-error);
+                transform: scale(1.05);
+            }
+
+            /* Enhanced Controls Section */
             .controls {
-                margin: 20px 16px;
-                border-radius: 16px;
+                margin: 0 20px 20px 20px;
                 padding: 20px;
-                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+                background: var(--mobile-surface);
+                border-radius: 20px;
+                border: 1px solid var(--mobile-border);
+                box-shadow: var(--mobile-shadow);
             }
 
             .controls-grid {
@@ -2150,334 +2226,475 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             }
 
             .action-buttons {
-                flex-direction: row;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
                 gap: 12px;
                 width: 100%;
-                max-width: none;
             }
 
             .action-btn {
-                flex: 1;
-                padding: 16px 20px;
-                font-size: 15px;
-                min-height: 56px;
+                padding: 18px 20px;
+                border-radius: 16px;
+                font-size: 16px;
+                font-weight: 600;
+                min-height: 58px;
+                border: none;
+                position: relative;
+                overflow: hidden;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .action-btn:first-child {
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
+            }
+
+            .action-btn.search {
+                background: linear-gradient(135deg, var(--mobile-success) 0%, #32d74b 100%);
+                box-shadow: 0 4px 20px rgba(48, 209, 88, 0.3);
+            }
+
+            .action-btn:active {
+                transform: scale(0.95);
             }
 
             .clear-search-container {
                 width: 100%;
+                margin-top: 8px;
             }
 
             .clear-search-container .btn {
                 width: 100%;
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--mobile-text-primary);
+                border: 1px solid var(--mobile-border);
+                border-radius: 14px;
+                padding: 14px;
+                backdrop-filter: blur(10px);
             }
 
+            /* Enhanced Form Inputs */
             input[type="url"],
             input[type="text"],
             input[type="password"] {
-                padding: 16px;
+                padding: 16px 20px;
                 font-size: 16px;
-                /* Prevents zoom on iOS */
-                border-radius: 12px;
-                border: 2px solid var(--border);
-                background: var(--bg-primary);
+                border-radius: 14px;
+                border: 1px solid var(--mobile-border);
+                background: rgba(255, 255, 255, 0.05);
+                color: var(--mobile-text-primary);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
             }
 
             input[type="url"]:focus,
             input[type="text"]:focus,
             input[type="password"]:focus {
-                border-color: var(--accent-primary);
-                box-shadow: 0 0 0 4px rgba(91, 33, 182, 0.1);
+                border-color: var(--mobile-accent);
+                background: rgba(255, 255, 255, 0.08);
+                box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+                transform: translateY(-2px);
             }
 
-            /* Mobile select styling */
-            select {
-                background-size: 10px;
-                background-position: right 8px center;
-                padding-right: 24px;
-            }
-
-            /* App-like buttons */
+            /* Enhanced Buttons */
             .btn,
             .btn-secondary {
                 padding: 16px 24px;
-                font-size: 15px;
+                font-size: 16px;
                 font-weight: 600;
-                border-radius: 12px;
+                border-radius: 14px;
                 min-height: 52px;
-                width: 100%;
-                justify-content: center;
-                transition: all 0.2s ease;
-                touch-action: manipulation;
+                backdrop-filter: blur(10px);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border: none;
             }
 
-            .form-buttons {
-                flex-direction: row;
-                gap: 12px;
-                margin-top: 20px;
-                padding-top: 16px;
+            .btn {
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                box-shadow: 0 4px 20px rgba(0, 122, 255, 0.25);
             }
 
-            .form-buttons .btn {
-                flex: 1;
+            .btn.success {
+                background: linear-gradient(135deg, var(--mobile-success) 0%, #32d74b 100%);
+                box-shadow: 0 4px 20px rgba(48, 209, 88, 0.25);
             }
 
-            /* Mobile gallery - card-like layout */
+            .btn.danger {
+                background: linear-gradient(135deg, var(--mobile-error) 0%, #ff6b6b 100%);
+                box-shadow: 0 4px 20px rgba(255, 69, 58, 0.25);
+            }
+
+            .btn.warning {
+                background: linear-gradient(135deg, var(--mobile-warning) 0%, #ffcc02 100%);
+                box-shadow: 0 4px 20px rgba(255, 159, 10, 0.25);
+            }
+
+            .btn-secondary {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--mobile-text-primary);
+                border: 1px solid var(--mobile-border);
+                box-shadow: 0 4px 20px rgba(255, 255, 255, 0.05);
+            }
+
+            .btn:active,
+            .btn-secondary:active {
+                transform: scale(0.95);
+            }
+
+            /* Enhanced Gallery Cards */
             .gallery {
-                padding: 0 16px;
+                padding: 0 20px 200px 20px;
                 grid-template-columns: 1fr;
-                gap: 16px;
-                margin-bottom: 20px;
+                gap: 20px;
+                margin-bottom: 0;
             }
 
             .goat-item {
                 max-width: 100%;
-                border-radius: 16px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                background: var(--mobile-surface);
+                border-radius: 24px;
+                border: 1px solid var(--mobile-border);
+                box-shadow: var(--mobile-shadow);
                 overflow: hidden;
-                background: var(--bg-secondary);
-                border: 1px solid var(--border);
+                transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .goat-item:active {
+                transform: scale(0.98);
+                box-shadow: var(--mobile-shadow-elevated);
             }
 
             .goat-image-container {
-                height: 250px;
-                border-radius: 16px 16px 0 0;
+                height: 280px;
+                border-radius: 24px 24px 0 0;
+                background: linear-gradient(135deg, var(--mobile-surface) 0%, var(--mobile-surface-elevated) 100%);
             }
 
             .goat-info {
-                padding: 16px;
-                width: 100%;
+                padding: 20px;
             }
 
-            .goat-id {
-                font-size: 11px;
-                padding: 8px 12px;
-                border-radius: 8px;
-                margin-bottom: 8px;
-                background: var(--bg-tertiary);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 6px;
+            .goat-id,
+            .goat-short-id {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--mobile-border);
+                border-radius: 12px;
+                padding: 12px 16px;
+                font-size: 12px;
+                margin-bottom: 12px;
+                backdrop-filter: blur(10px);
             }
 
             .goat-short-id {
-                font-size: 11px;
-                padding: 8px 12px;
-                border-radius: 8px;
-                margin-bottom: 12px;
-                background: var(--bg-tertiary);
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                gap: 6px;
-                border: 1px solid rgba(91, 33, 182, 0.3);
-                position: relative;
+                border-color: rgba(0, 122, 255, 0.3);
+                background: rgba(0, 122, 255, 0.1);
             }
 
             .copy-id-btn {
-                min-width: 24px;
-                height: 24px;
-                font-size: 14px;
-                padding: 4px;
-                touch-action: manipulation;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 8px;
+                padding: 6px;
+                min-width: 28px;
+                height: 28px;
+                color: var(--mobile-text-secondary);
+                backdrop-filter: blur(5px);
+                transition: all 0.2s ease;
             }
 
             .copy-id-btn:hover {
-                background: var(--bg-secondary);
-            }
-
-            .goat-tags {
-                margin-bottom: 12px;
+                background: rgba(255, 255, 255, 0.2);
+                color: var(--mobile-text-primary);
+                transform: scale(1.1);
             }
 
             .tag {
-                font-size: 10px;
-                padding: 3px 6px;
-                margin: 1px 3px 1px 0;
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                color: white;
+                padding: 6px 12px;
+                border-radius: 16px;
+                font-size: 12px;
+                font-weight: 600;
+                margin: 4px 6px 4px 0;
+                box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
             }
 
             .goat-actions {
+                margin-top: 16px;
+                gap: 12px;
                 align-items: stretch;
-                gap: 6px;
-                flex-direction: row;
-                justify-content: center;
-                flex-wrap: nowrap;
-                width: 100%;
-                margin-top: auto;
-            }
-
-            .goat-links {
-                flex-shrink: 0;
-                display: flex;
             }
 
             .goat-link {
-                width: 44px;
-                height: 40px;
-                border-radius: 8px;
-                font-size: 16px;
-                touch-action: manipulation;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                width: 48px;
+                height: 48px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                color: white;
+                font-size: 20px;
+                box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+                border: none;
+                transition: all 0.3s ease;
+            }
+
+            .goat-link:active {
+                transform: scale(0.9);
             }
 
             .goat-action-buttons {
-                display: flex;
-                gap: 6px;
                 flex: 1;
-                flex-wrap: nowrap;
+                gap: 8px;
             }
 
             .goat-action-buttons .btn {
                 flex: 1;
-                min-width: auto;
-                padding: 8px 6px;
-                font-size: 13px;
-                height: 40px;
-                min-height: 40px;
-                white-space: nowrap;
-                max-width: none;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 8px;
+                padding: 12px 16px;
+                font-size: 14px;
+                height: 48px;
+                min-height: 48px;
+                border-radius: 16px;
+                font-weight: 600;
             }
 
-            /* Mobile pagination */
+            /* Enhanced Messages */
+            .message {
+                margin: 20px 20px 160px 20px;
+                padding: 20px;
+                border-radius: 16px;
+                font-size: 15px;
+                border: 1px solid;
+                backdrop-filter: blur(10px);
+                box-shadow: var(--mobile-shadow);
+            }
+
+            .message.success {
+                background: rgba(48, 209, 88, 0.1);
+                color: var(--mobile-success);
+                border-color: rgba(48, 209, 88, 0.3);
+            }
+
+            .message.error {
+                background: rgba(255, 69, 58, 0.1);
+                color: var(--mobile-error);
+                border-color: rgba(255, 69, 58, 0.3);
+            }
+
+            .message.warning {
+                background: rgba(255, 159, 10, 0.1);
+                color: var(--mobile-warning);
+                border-color: rgba(255, 159, 10, 0.3);
+            }
+
+            /* Enhanced Pagination - Mobile Optimized */
             .pagination {
-                padding: 20px 16px;
+                padding: 16px 20px;
                 margin: 0;
                 gap: 6px;
                 justify-content: center;
-                flex-wrap: wrap;
-                overflow-x: visible;
-                max-width: 100%;
+                background: var(--mobile-surface);
+                border-top: 1px solid var(--mobile-border);
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 50;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+                overflow-x: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                white-space: nowrap;
+                min-height: 70px;
+            }
+
+            .pagination::-webkit-scrollbar {
+                display: none;
             }
 
             .pagination a,
             .pagination span {
-                padding: 10px 12px;
-                min-width: 40px;
-                min-height: 40px;
-                border-radius: 8px;
+                padding: 8px 12px;
+                min-width: 36px;
+                min-height: 36px;
+                border-radius: 10px;
                 font-size: 13px;
-                flex-shrink: 1;
-                touch-action: manipulation;
-                text-align: center;
-                display: flex;
+                font-weight: 600;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid var(--mobile-border);
+                color: var(--mobile-text-primary);
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+                flex-shrink: 0;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
             }
 
-            /* Mobile modal improvements */
+            .pagination a:active {
+                transform: scale(0.95);
+            }
+
+            .pagination .current {
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                border-color: var(--mobile-accent);
+                color: white;
+                box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3);
+            }
+
+            /* Enhanced Modals - Slide-up Style (Not Fullscreen) */
+            .modal.show {
+                padding: 0;
+                align-items: flex-end;
+                justify-content: center;
+            }
+
             .modal-content {
-                margin: 20px 16px;
-                padding: 24px;
-                border-radius: 20px;
+                width: 100%;
                 max-width: none;
-                width: calc(100% - 32px);
-                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+                border-radius: 20px 20px 0 0;
+                background: var(--mobile-primary);
+                padding: 24px 24px 100px 24px;
+                position: relative;
+                animation: slideUpIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid var(--mobile-border);
+                box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+                max-height: 85vh;
+                overflow-y: auto;
+                margin-bottom: 0;
+            }
+
+            @keyframes slideUpIn {
+                from {
+                    transform: translateY(100%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            .modal-header {
+                margin-bottom: 24px;
+                padding-bottom: 16px;
+                border-bottom: 1px solid var(--mobile-border);
+                text-align: center;
             }
 
             .modal-header h2 {
-                font-size: 1.5rem;
-                margin-bottom: 12px;
+                font-size: 1.25rem;
+                font-weight: 700;
+                margin-bottom: 8px;
+                color: var(--mobile-text-primary);
             }
 
-            .modal-buttons {
-                flex-direction: row;
-                gap: 12px;
-                margin-top: 24px;
-            }
-
-            .modal-buttons .btn {
-                flex: 1;
-                margin: 0;
-            }
-
-            /* Message styling for mobile */
-            .message {
-                margin: 16px;
-                padding: 16px;
-                border-radius: 12px;
+            .modal-header p {
+                color: var(--mobile-text-secondary);
                 font-size: 14px;
             }
 
-            /* Empty state mobile */
+            .form-buttons {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 16px 24px;
+                background: var(--mobile-surface);
+                border-top: 1px solid var(--mobile-border);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .modal-buttons {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                padding: 16px 24px;
+                background: var(--mobile-surface);
+                border-top: 1px solid var(--mobile-border);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+                backdrop-filter: blur(20px);
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            /* Enhanced Empty State */
             .empty-state {
-                padding: 60px 20px;
-                margin: 20px 16px;
-                background: var(--bg-secondary);
-                border-radius: 16px;
-                border: 1px solid var(--border);
+                padding: 60px 20px 200px 20px;
+                margin: 20px;
+                background: var(--mobile-surface);
+                border-radius: 20px;
+                border: 1px solid var(--mobile-border);
+                text-align: center;
+                box-shadow: var(--mobile-shadow);
             }
 
             .empty-state h3 {
                 font-size: 1.25rem;
-                margin-bottom: 12px;
+                margin-bottom: 16px;
+                color: var(--mobile-text-primary);
+                font-weight: 700;
             }
 
             .empty-state p {
-                font-size: 14px;
+                font-size: 15px;
                 line-height: 1.5;
-                margin-bottom: 8px;
+                margin-bottom: 12px;
+                color: var(--mobile-text-secondary);
             }
 
-            /* Touch-friendly tooltips - disable on mobile */
-            .tooltip::before,
-            .tooltip::after {
-                display: none;
-            }
-
-            /* Login form mobile optimization */
-            .modal.show .modal-content form .btn {
-                width: 100%;
-                margin-top: 8px;
-            }
-
+            /* Login Form Enhancements */
             .login-error {
-                font-size: 13px;
-                margin-top: 16px;
-                padding: 12px;
-                background: rgba(220, 38, 38, 0.1);
-                border-radius: 8px;
-                border: 1px solid var(--error);
+                font-size: 14px;
+                margin-top: 20px;
+                padding: 16px 20px;
+                background: rgba(255, 69, 58, 0.1);
+                border-radius: 12px;
+                border: 1px solid rgba(255, 69, 58, 0.3);
+                color: var(--mobile-error);
+                text-align: center;
             }
 
-            /* Form modal mobile optimization */
-            .form-modal .modal-content {
-                max-width: none;
-            }
-
-            /* Edit tags modal mobile optimization */
-            .edit-tags-modal .modal-content {
-                max-width: none;
-            }
-
+            /* Enhanced Tag Editing */
             .current-tags {
-                min-height: 40px;
-                padding: 8px;
+                min-height: 48px;
+                padding: 12px 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--mobile-border);
+                border-radius: 12px;
+                backdrop-filter: blur(10px);
             }
 
             .editable-tag {
-                font-size: 12px;
-                padding: 3px 6px;
-                gap: 4px;
+                font-size: 13px;
+                padding: 6px 12px;
+                gap: 6px;
+                background: linear-gradient(135deg, var(--mobile-accent) 0%, #5856d6 100%);
+                border-radius: 16px;
+                box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
             }
 
             .remove-tag-btn {
-                width: 14px;
-                height: 14px;
-                font-size: 10px;
+                width: 18px;
+                height: 18px;
+                font-size: 12px;
+                background: rgba(255, 255, 255, 0.2);
+                backdrop-filter: blur(5px);
             }
 
             #newTagsInput {
-                padding: 16px;
+                padding: 16px 20px;
                 font-size: 16px;
+                border-radius: 12px;
+                border: 1px solid var(--mobile-border);
+                background: rgba(255, 255, 255, 0.05);
+                backdrop-filter: blur(10px);
             }
 
             /* Safe area adjustments for notched devices */
@@ -2489,239 +2706,157 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 body {
                     padding-bottom: max(0px, env(safe-area-inset-bottom));
                 }
-            }
 
-            /* Dark mode adjustments for mobile */
-            @media (prefers-color-scheme: dark) {
-                .header {
-                    backdrop-filter: blur(20px);
-                    background: rgba(26, 26, 26, 0.95);
+                .pagination {
+                    padding-bottom: max(20px, calc(20px + env(safe-area-inset-bottom)));
+                    height: auto;
+                    min-height: 60px;
+                }
+
+                .form-buttons,
+                .modal-buttons {
+                    padding-bottom: max(24px, calc(24px + env(safe-area-inset-bottom)));
+                }
+
+                /* Extra padding for content areas on devices with safe area insets */
+                .gallery {
+                    margin-bottom: 80px;
+                }
+
+                .empty-state {
+                    margin-bottom: 80px;
                 }
             }
 
-            /* Improved scrolling on mobile */
+            /* Reduce motion for accessibility */
+            @media (prefers-reduced-motion: reduce) {
+
+                .goat-item,
+                .action-btn,
+                .btn,
+                .btn-secondary,
+                .modal-content {
+                    transition: none !important;
+                    animation: none !important;
+                }
+
+                .goat-item:active,
+                .action-btn:active,
+                .btn:active {
+                    transform: none !important;
+                }
+            }
+
+            /* Dark mode optimizations */
+            @media (prefers-color-scheme: dark) {
+                .header {
+                    background: linear-gradient(135deg, rgba(22, 22, 24, 0.95) 0%, rgba(30, 30, 32, 0.95) 100%);
+                }
+
+                .pagination {
+                    background: rgba(22, 22, 24, 0.95);
+                }
+
+                .form-buttons,
+                .modal-buttons {
+                    background: rgba(22, 22, 24, 0.95);
+                }
+            }
+
+            /* High contrast mode support */
+            @media (prefers-contrast: high) {
+
+                .goat-item,
+                .controls,
+                .message {
+                    border-width: 2px;
+                }
+
+                .btn,
+                .action-btn {
+                    border: 2px solid currentColor;
+                }
+            }
+
+            /* Touch feedback improvements */
+            .action-btn,
+            .btn,
+            .btn-secondary,
+            .goat-link,
+            .copy-id-btn {
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                touch-action: manipulation;
+            }
+
+            /* Improved scrolling */
             .container {
                 -webkit-overflow-scrolling: touch;
                 overflow-x: hidden;
+                scroll-behavior: smooth;
             }
 
-            /* Better button feedback */
-            .btn:active,
-            .btn-secondary:active,
-            .goat-link:active,
-            .action-btn:active {
-                transform: scale(0.98);
-                transition: transform 0.1s ease;
-            }
-
-            /* Improved form field focus */
-            input:focus {
-                transform: scale(1.02);
-                transition: transform 0.2s ease;
+            /* Loading states */
+            .btn.loading::after {
+                border-color: rgba(255, 255, 255, 0.2);
+                border-top-color: white;
             }
         }
 
-        /* Additional mobile-specific styles for very small screens */
-        @media (max-width: 480px) {
-            .header-content h1 {
-                font-size: 1.5rem;
-            }
-
-            .per-page-container {
-                min-width: auto;
-            }
-
-            .per-page-container select {
-                max-width: 70px;
-                padding: 4px 6px;
-                font-size: 11px;
-            }
-
-            .github-status {
-                font-size: 10px;
-                padding: 3px 6px;
-            }
-
-            .logout-btn {
-                font-size: 11px;
-                width: 32px;
-                height: 32px;
-            }
-
-            .controls {
-                margin: 16px 12px;
-                padding: 16px;
-            }
-
-            .action-btn {
-                padding: 14px 20px;
-                font-size: 15px;
-                min-height: 52px;
-            }
-
+        /* Tablet landscape optimizations */
+        @media (max-width: 1024px) and (orientation: landscape) and (min-width: 769px) {
             .gallery {
-                padding: 0 12px;
-                gap: 12px;
-            }
-
-            .goat-image-container {
-                height: 220px;
-            }
-
-            .goat-id {
-                font-size: 10px;
-                padding: 6px 10px;
-                border-radius: 6px;
-                margin-bottom: 6px;
-            }
-
-            .goat-short-id {
-                font-size: 10px;
-                padding: 6px 10px;
-                border-radius: 6px;
-                margin-bottom: 10px;
-            }
-
-            .goat-short-id::before {
-                left: -6px;
-                font-size: 7px;
-            }
-
-            .copy-id-btn {
-                min-width: 20px;
-                height: 20px;
-                font-size: 12px;
-                padding: 2px;
-            }
-
-            .goat-actions {
-                gap: 4px;
-                align-items: stretch;
-            }
-
-            .goat-links {
-                flex-shrink: 0;
-                display: flex;
-            }
-
-            .goat-action-buttons {
-                flex: 1;
-                gap: 4px;
-            }
-
-            .goat-action-buttons .btn {
-                flex: 1;
-                padding: 8px 4px;
-                font-size: 12px;
-                height: 36px;
-                min-height: 36px;
-                border-radius: 6px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-
-            .goat-link {
-                height: 36px;
-                border-radius: 6px;
-                font-size: 1.5rem;
-                width: 40px;
-            }
-
-            .pagination {
-                padding: 16px 12px;
-                gap: 4px;
-            }
-
-            .pagination a,
-            .pagination span {
-                padding: 8px 10px;
-                min-width: 36px;
-                min-height: 36px;
-                font-size: 12px;
-            }
-
-            .modal-content {
-                margin: 16px 12px;
-                padding: 20px;
-                width: calc(100% - 24px);
-            }
-
-            .message {
-                margin: 12px;
-            }
-
-            .empty-state {
-                margin: 16px 12px;
-                padding: 40px 16px;
-            }
-        }
-
-        /* Landscape mobile optimization */
-        @media (max-width: 768px) and (orientation: landscape) {
-            .header {
-                position: relative;
-                border-radius: 0;
-                padding: 16px 20px;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-            }
-
-            .header-content h1 {
-                font-size: 1.5rem;
-                margin-bottom: 4px;
-                text-align: left;
-            }
-
-            .header-wrapper {
-                flex-direction: row;
-                gap: 12px;
-            }
-
-            .header-bottom-row {
-                flex-direction: row;
-                gap: 12px;
-                align-items: center;
-            }
-
-            .stats {
-                margin-bottom: 0;
-                text-align: left;
-            }
-
-            .per-page-container {
-                align-self: center;
-            }
-
-            .logout-btn {
-                max-width: none;
-                width: auto;
-                width: 32px;
-                height: 32px;
-                font-size: 11px;
-                margin-left: 12px;
-            }
-
-            .gallery {
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 16px;
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 20px;
+                padding: 0 40px 40px 40px;
             }
 
             .goat-image-container {
                 height: 200px;
             }
 
-            /* Landscape pagination adjustments */
-            .pagination {
-                padding: 16px 20px;
-                gap: 6px;
+            .header {
+                padding: 24px 40px;
             }
 
-            .pagination a,
-            .pagination span {
-                padding: 8px 12px;
-                min-width: 40px;
+            .controls {
+                margin: 0 40px 24px 40px;
+            }
+        }
+
+        /* Very small screens */
+        @media (max-width: 480px) {
+            .header {
+                padding: 16px 20px 10px 20px;
+                margin-bottom: 10px;
+            }
+
+            .header-content h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                margin: 0 16px 16px 16px;
+                padding: 16px;
+            }
+
+            .gallery {
+                padding: 0 16px 16px 16px;
+            }
+
+            .goat-image-container {
+                height: 260px;
+            }
+
+            .message {
+                margin: 16px;
+            }
+
+            .empty-state {
+                margin: 16px;
+                padding: 40px 16px 190px 16px;
             }
         }
 
@@ -2785,10 +2920,9 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 <div class="header-content">
                     <div class="header-wrapper">
                         <div style="position: relative;">
-                            <a href="?logout=1" class="logout-btn"> <svg class="logout-icon"
-                                    xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28" fill="none"
-                                    stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
-                                    <!-- Half Circle (using M start, A arc, Z close) -->
+                            <a href="?logout=1" class="logout-btn">
+                                <svg class="logout-icon" xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 28 28"
+                                    fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 5px;">
                                     <path d="M7 4 A 8 8 0 0 0 7 20" stroke-linecap="round"></path>
                                     <polyline points="14 7 19 12 14 17" stroke-linecap="round" stroke-linejoin="round">
                                     </polyline>
@@ -2796,16 +2930,33 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                 </svg>
                             </a>
                         </div>
-                        <h1><a href="/admin" style="text-decoration: none; color: white;">🐐 Random Goat Admin</h1></a>
+                        <h1><a href="/admin" style="text-decoration: none; color: inherit;">🐐 Random Goat Admin</a></h1>
                     </div>
                     <div class="stats">
-                        <?php if ($search): ?>
-                            Search: "<?php echo htmlspecialchars($search); ?>" -
-                            <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
-                        <?php else: ?>
-                            Total Goats: <?php echo count($allGoatsData); ?> |
-                        <?php endif; ?>
-                        Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                        <div class="stats-text">
+                            <?php if ($search): ?>
+                                Search: "<?php echo htmlspecialchars($search); ?>" -
+                                <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
+                            <?php else: ?>
+                                Total Goats: <?php echo count($allGoatsData); ?> |
+                            <?php endif; ?>
+                            Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
+                        </div>
+                        <div class="per-page-container">
+                            <form method="GET" id="perPageForm">
+                                <?php if ($search): ?>
+                                    <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
+                                <?php endif; ?>
+                                <label for="perPage">Per Page</label>
+                                <select id="perPage" name="perPage">
+                                    <?php foreach ($allowedPerPage as $option): ?>
+                                        <option value="<?php echo $option; ?>" <?php echo $perPage == $option ? 'selected' : ''; ?>>
+                                            <?php echo $option; ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </form>
+                        </div>
                     </div>
                     <div class="header-wrapper">
                         <div class="header-bottom-row">
@@ -2819,22 +2970,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                 <?php else: ?>
                                     ⚠️ GitHub Sync: Disabled
                                 <?php endif; ?>
-                            </div>
-                            <div class="per-page-container">
-                                <form method="GET" id="perPageForm">
-                                    <!-- Preserve search setting when changing items per page -->
-                                    <?php if ($search): ?>
-                                        <input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>">
-                                    <?php endif; ?>
-                                    <label for="perPage">Goats/Page</label>
-                                    <select id="perPage" name="perPage">
-                                        <?php foreach ($allowedPerPage as $option): ?>
-                                            <option value="<?php echo $option; ?>" <?php echo $perPage == $option ? 'selected' : ''; ?>>
-                                                <?php echo $option; ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </form>
                             </div>
                         </div>
                     </div>
@@ -2978,8 +3113,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                         }
                         $paramString = !empty($urlParams) ? '&' . implode('&', $urlParams) : '';
 
-                        // Enhanced pagination logic to limit to maximum 8 buttons total
-                        $maxButtons = 8;
+                        // Enhanced pagination logic to limit to maximum 7 buttons total (mobile-friendly)
+                        $maxButtons = 7;
 
                         // Determine which navigation buttons we need
                         $hasFirst = $page > 1;
@@ -3062,7 +3197,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     <small style="color: var(--text-muted); font-size: 12px; margin-top: 10px; display: block;">
                         🔗 <strong>Giphy:</strong> Uses Giphy ID (e.g., cMso9wDwqSy3e)<br>
                         🌐 <strong>Direct:</strong> Uses URL hash (prevents duplicates)<br>
-                        ⭐ <strong>Short ID:</strong> Auto-generated 5-char hash for easy sharing
                     </small>
                     <div class="form-buttons">
                         <button type="button" class="btn btn-secondary" onclick="hideAddGoatModal()">Cancel</button>
@@ -3080,7 +3214,6 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     <p>Search for goats by ID, Short ID, or tags</p>
                 </div>
                 <form method="GET" id="searchForm">
-                    <!-- Preserve items per page setting when searching -->
                     <?php if ($perPage != 12): ?>
                         <input type="hidden" name="perPage" value="<?php echo $perPage; ?>">
                     <?php endif; ?>
@@ -3170,7 +3303,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             document.getElementById('addGoatModal').classList.add('show');
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
-            document.getElementById('url').focus();
+            // Removed auto-focus to let users see the modal content first
         }
 
         function hideAddGoatModal() {
@@ -3186,7 +3319,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             document.getElementById('searchModal').classList.add('show');
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
-            document.getElementById('search').focus();
+            // Removed auto-focus to let users see the modal content first
         }
 
         function hideSearchModal() {
@@ -3459,7 +3592,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             updateCurrentTagsDisplay();
             document.getElementById('newTagsInput').value = '';
-            document.getElementById('newTagsInput').focus();
+            // Removed auto-focus to let users see the modal content first
         }
 
         function hideEditTagsModal() {
