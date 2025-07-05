@@ -28,7 +28,7 @@
     </style>
 </head>
 <body>
-    <iframe src="index.html" frameborder="0" allowfullscreen></iframe>
+    <iframe src="index.php" frameborder="0" allowfullscreen></iframe>
     
     <!-- Default Statcounter code for Random Goat v2 Embed https://randomgoat.com/embed.php -->
 	<script type="text/javascript">
