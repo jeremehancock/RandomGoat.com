@@ -1843,6 +1843,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             max-width: 500px;
             width: 90%;
             animation: slideIn 0.3s ease-out;
+            align-self: center;
         }
 
         .modal-header {
@@ -2622,7 +2623,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
                 max-height: 85vh;
                 overflow-y: auto;
-                margin-bottom: 0;
+                align-self: flex-end;
             }
 
             @keyframes slideUpIn {
@@ -2983,7 +2984,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
     <?php if (!$isLoggedIn): ?>
         <!-- Login Modal -->
         <div class="modal show">
-            <div class="modal-content" style="border-radius: 20px 20px 20px 20px;">
+            <div class="modal-content" style="border-radius: 20px 20px 20px 20px; align-self: center;">
                 <div class="modal-header">
                     <h2>🐐 Admin Login</h2>
                 </div>
