@@ -2203,8 +2203,9 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 background: rgba(48, 209, 88, 0.1);
                 color: var(--mobile-success);
                 border-color: rgba(48, 209, 88, 0.3);
-                align-self: center;
-                margin-top: 10px;
+                align-self: stretch;
+                justify-content: center;
+                margin-top: 12px;
             }
 
             .github-status.disabled {
@@ -3164,7 +3165,8 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                 <?php if (!empty($goat['tags'])): ?>
                                     <div class="goat-tags">
                                         <?php foreach ($goat['tags'] as $tag): ?>
-                                            <span class="tag"><?php echo htmlspecialchars($tag); ?></span>
+                                            <span class="tag"><a href="?search=<?php echo htmlspecialchars($tag); ?>"
+                                                    style="text-decoration: none; color: inherit;"><?php echo htmlspecialchars($tag); ?></a></span>
                                         <?php endforeach; ?>
                                     </div>
                                 <?php endif; ?>
