@@ -568,20 +568,20 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                         );
 
                                         if ($githubResults['gif']['success'] && $githubResults['json']['success']) {
-                                            $message .= " ✅ Successfully committed to GitHub!";
+                                            $message .= "<br>✅ Successfully committed to GitHub!";
                                             $messageType = 'success';
                                         } else {
-                                            $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
+                                            $message .= "<br>⚠️ Local save successful, but GitHub sync failed:";
                                             if (!$githubResults['gif']['success']) {
-                                                $message .= "GIF upload failed (" . $githubResults['gif']['error'] . ") ";
+                                                $message .= "<br>• File upload failed (" . $githubResults['gif']['error'] . ")";
                                             }
                                             if (!$githubResults['json']['success']) {
-                                                $message .= "goats.json update failed (" . $githubResults['json']['error'] . ")";
+                                                $message .= "<br>• goats.json update failed (" . $githubResults['json']['error'] . ")";
                                             }
                                             $messageType = 'warning';
                                         }
                                     } else {
-                                        $message .= " (GitHub sync disabled - missing configuration)";
+                                        $message .= "<br>(GitHub sync disabled - missing configuration)";
                                         $messageType = 'success';
                                     }
                                 } else {
@@ -641,20 +641,20 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                                         );
 
                                         if ($githubResults['gif']['success'] && $githubResults['json']['success']) {
-                                            $message .= " <br/>✅ Successfully committed to GitHub!";
+                                            $message .= "<br>✅ Successfully committed to GitHub!";
                                             $messageType = 'success';
                                         } else {
-                                            $message .= " ⚠️ Local save successful, but GitHub sync failed: ";
+                                            $message .= "<br>⚠️ Local save successful, but GitHub sync failed:";
                                             if (!$githubResults['gif']['success']) {
-                                                $message .= "File upload failed (" . $githubResults['gif']['error'] . ") ";
+                                                $message .= "<br>• File upload failed (" . $githubResults['gif']['error'] . ")";
                                             }
                                             if (!$githubResults['json']['success']) {
-                                                $message .= "goats.json update failed (" . $githubResults['json']['error'] . ")";
+                                                $message .= "<br>• goats.json update failed (" . $githubResults['json']['error'] . ")";
                                             }
                                             $messageType = 'warning';
                                         }
                                     } else {
-                                        $message .= " (GitHub sync disabled - missing configuration)";
+                                        $message .= "<br>(GitHub sync disabled - missing configuration)";
                                         $messageType = 'success';
                                     }
                                 } else {
@@ -705,14 +705,14 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                             );
 
                             if ($githubResult['success']) {
-                                $message .= " ✅ Successfully synced to GitHub!";
+                                $message .= "<br>✅ Successfully synced to GitHub!";
                                 $messageType = 'success';
                             } else {
-                                $message .= " ⚠️ Local update successful, but GitHub sync failed: " . $githubResult['error'];
+                                $message .= "<br>⚠️ Local update successful, but GitHub sync failed:<br>" . $githubResult['error'];
                                 $messageType = 'warning';
                             }
                         } else {
-                            $message .= " (GitHub sync disabled - missing configuration)";
+                            $message .= "<br>(GitHub sync disabled - missing configuration)";
                             $messageType = 'success';
                         }
                     } else {
@@ -754,25 +754,25 @@ if ($isLoggedIn && $_SERVER['REQUEST_METHOD'] === 'POST') {
                             );
 
                             if ($githubResults['gif']['success'] && $githubResults['json']['success']) {
-                                $message .= " ✅ Successfully removed from GitHub!";
+                                $message .= "<br>✅ Successfully removed from GitHub!";
                                 $messageType = 'success';
                             } else {
-                                $message .= " ⚠️ Local deletion successful, but GitHub sync failed: ";
+                                $message .= "<br>⚠️ Local deletion successful, but GitHub sync failed:";
                                 if (!$githubResults['gif']['success']) {
-                                    $message .= "GIF deletion failed (" . $githubResults['gif']['error'] . ") ";
+                                    $message .= "<br>• GIF deletion failed (" . $githubResults['gif']['error'] . ")";
                                 }
                                 if (!$githubResults['json']['success']) {
-                                    $message .= "goats.json update failed (" . $githubResults['json']['error'] . ")";
+                                    $message .= "<br>• goats.json update failed (" . $githubResults['json']['error'] . ")";
                                 }
                                 $messageType = 'warning';
                             }
                         } else {
-                            $message .= " (GitHub sync disabled - missing configuration)";
+                            $message .= "<br>(GitHub sync disabled - missing configuration)";
                             $messageType = 'success';
                         }
 
                         if (!$deleteFileResult) {
-                            $message .= " Note: Local GIF file could not be deleted.";
+                            $message .= "<br>Note: Local GIF file could not be deleted.";
                         }
                     } else {
                         $message = "Error deleting goat from file.";
@@ -1067,6 +1067,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             margin-bottom: 20px;
             font-weight: 500;
             border: 1px solid;
+            line-height: 1.5;
         }
 
         .message.success {
@@ -1875,6 +1876,84 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             text-align: center;
         }
 
+        /* Delete Preview Styles */
+        .delete-preview {
+            display: flex;
+            gap: 16px;
+            margin: 20px 0;
+            padding: 16px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .delete-preview-image {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--bg-primary);
+            flex-shrink: 0;
+        }
+
+        .delete-preview-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: opacity 0.3s ease;
+        }
+
+        .delete-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: var(--text-muted);
+            background: var(--bg-primary);
+        }
+
+        .delete-preview-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .delete-preview-id,
+        .delete-preview-short-id,
+        .delete-preview-tags {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .delete-preview-id strong,
+        .delete-preview-short-id strong,
+        .delete-preview-tags strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .delete-preview-id span,
+        .delete-preview-short-id span {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 12px;
+            background: var(--bg-primary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+        }
+
+        .delete-preview-tags span {
+            margin-left: 6px;
+        }
+
         /* Form modal specific styles */
         .form-modal .modal-content {
             max-width: 600px;
@@ -2529,6 +2608,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 border: 1px solid;
                 backdrop-filter: blur(10px);
                 box-shadow: var(--mobile-shadow);
+                line-height: 1.6;
             }
 
             .message.success {
@@ -2759,6 +2839,68 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                 border: 1px solid var(--mobile-border);
                 background: rgba(255, 255, 255, 0.05);
                 backdrop-filter: blur(10px);
+            }
+
+            /* Mobile Delete Preview */
+            .delete-preview {
+                flex-direction: column;
+                gap: 12px;
+                margin: 16px 0;
+                padding: 16px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid var(--mobile-border);
+                border-radius: 16px;
+                backdrop-filter: blur(10px);
+                align-items: center;
+            }
+
+            .delete-preview-image {
+                width: 100%;
+                height: 120px;
+                max-width: 200px;
+                align-self: center;
+            }
+
+            .delete-preview-info {
+                gap: 10px;
+                text-align: left;
+                align-items: flex-start;
+                width: 100%;
+                max-width: 200px;
+                align-self: center;
+            }
+
+            .delete-preview-id,
+            .delete-preview-short-id,
+            .delete-preview-tags {
+                font-size: 15px;
+                line-height: 1.4;
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 6px;
+                width: 100%;
+            }
+
+            .delete-preview-id span,
+            .delete-preview-short-id span {
+                display: inline-block;
+                margin: 0;
+                padding: 4px 8px;
+                background: var(--mobile-surface);
+                border-radius: 6px;
+                word-break: break-all;
+                flex: 1;
+                min-width: 0;
+            }
+
+            .delete-preview-tags span {
+                display: inline-block;
+                margin: 0;
+                padding: 4px 8px;
+                background: var(--mobile-surface);
+                border-radius: 6px;
+                word-break: break-word;
             }
 
             /* Safe area adjustments for notched devices */
@@ -3069,7 +3211,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
 
             <?php if ($message): ?>
                 <div class="message <?php echo $messageType; ?>">
-                    <?php echo htmlspecialchars($message); ?>
+                    <?php echo $message; ?>
                 </div>
             <?php endif; ?>
 
@@ -3182,7 +3324,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                             🏷️ Tags
                                         </button>
                                         <button type="button" class="btn danger btn-small"
-                                            onclick="showDeleteModal('<?php echo htmlspecialchars($goat['id']); ?>')">
+                                            onclick="showDeleteModal('<?php echo htmlspecialchars($goat['id']); ?>', '<?php echo htmlspecialchars($goat['short_id']); ?>', <?php echo htmlspecialchars(json_encode($goat['tags'])); ?>)">
                                             🗑️ Delete
                                         </button>
                                     </div>
@@ -3332,6 +3474,26 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                     <h2>Delete Goat</h2>
                     <p>Are you sure you want to delete this goat?</p>
                 </div>
+                
+                <!-- Goat Preview -->
+                <div class="delete-preview">
+                    <div class="delete-preview-image">
+                        <img id="deletePreviewImg" src="" alt="Goat to delete" style="display: none;">
+                        <div id="deletePreviewPlaceholder" class="delete-placeholder">🐐</div>
+                    </div>
+                    <div class="delete-preview-info">
+                        <div class="delete-preview-id">
+                            <strong>ID:</strong> <span id="deletePreviewId"></span>
+                        </div>
+                        <div class="delete-preview-short-id">
+                            <strong>Short ID:</strong> <span id="deletePreviewShortId"></span>
+                        </div>
+                        <div class="delete-preview-tags" id="deletePreviewTags" style="display: none;">
+                            <strong>Tags:</strong> <span id="deletePreviewTagsList"></span>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="modal-buttons">
                     <button type="button" class="btn btn-secondary" onclick="hideDeleteModal()">Cancel</button>
                     <button type="button" class="btn danger" onclick="confirmDelete()">
@@ -3986,8 +4148,45 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
         });
 
         // Delete modal functions
-        function showDeleteModal(goatId) {
+        function showDeleteModal(goatId, shortId, tags) {
             goatToDelete = goatId;
+            
+            // Update preview info
+            document.getElementById('deletePreviewId').textContent = goatId;
+            document.getElementById('deletePreviewShortId').textContent = shortId;
+            
+            // Handle tags
+            const tagsContainer = document.getElementById('deletePreviewTags');
+            const tagsList = document.getElementById('deletePreviewTagsList');
+            if (tags && tags.length > 0) {
+                tagsList.textContent = tags.join(', ');
+                tagsContainer.style.display = 'block';
+            } else {
+                tagsContainer.style.display = 'none';
+            }
+            
+            // Load preview image
+            const previewImg = document.getElementById('deletePreviewImg');
+            const placeholder = document.getElementById('deletePreviewPlaceholder');
+            
+            // Reset image state
+            previewImg.style.display = 'none';
+            placeholder.style.display = 'flex';
+            
+            // Try to load the image
+            const imgSrc = `../goats/${goatId}.gif`;
+            previewImg.onload = function() {
+                placeholder.style.display = 'none';
+                previewImg.style.display = 'block';
+            };
+            previewImg.onerror = function() {
+                // Keep placeholder visible if image fails to load
+                placeholder.style.display = 'flex';
+                previewImg.style.display = 'none';
+            };
+            previewImg.src = imgSrc;
+            
+            // Show modal
             document.getElementById('deleteModal').classList.add('show');
             document.body.classList.add('modal-open');
             document.body.style.overflow = 'hidden';
@@ -3998,6 +4197,13 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
             document.body.classList.remove('modal-open');
             document.body.style.overflow = '';
             goatToDelete = '';
+            
+            // Reset preview
+            const previewImg = document.getElementById('deletePreviewImg');
+            const placeholder = document.getElementById('deletePreviewPlaceholder');
+            previewImg.src = '';
+            previewImg.style.display = 'none';
+            placeholder.style.display = 'flex';
         }
 
         function confirmDelete() {
