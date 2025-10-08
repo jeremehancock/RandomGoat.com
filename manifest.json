@@ -1,0 +1,39 @@
+{
+  "name": "Random Goat",
+  "short_name": "Random Goat",
+  "description": "Looking for random goat gifs? Look no further!",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#667eea",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/images/manifest/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/manifest/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["entertainment", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Random Goat",
+      "short_name": "Random",
+      "description": "View random goat gifs",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/images/manifest/android-chrome-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
+}
