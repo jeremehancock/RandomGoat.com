@@ -2788,7 +2788,7 @@ $currentGoats = array_slice($filteredGoatsData, $offset, $perPage);
                                 Search: "<?php echo htmlspecialchars($search); ?>" -
                                 <?php echo $totalGoats; ?> result<?php echo $totalGoats !== 1 ? 's' : ''; ?> found |
                             <?php else: ?>
-                                Total Goats: <?php echo count($allGoatsData); ?> |
+                                Total Goats: <?php echo count(glob($goatsDir . '*.gif')); ?> |
                             <?php endif; ?>
                             Page <?php echo $page; ?> of <?php echo max(1, $totalPages); ?>
                         </div>
