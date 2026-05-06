@@ -36,15 +36,15 @@ header('Content-Type: text/html; charset=UTF-8');
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Random Goat</title>
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/x-icon" href="/images/manifest/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/manifest/favicon-16x16.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/manifest/favicon-32x32.png">
 
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
 
     <!-- Apple Touch Icon -->
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="/images/manifest/apple-touch-icon.png">
 
     <!-- Apple PWA Settings -->
     <meta name="apple-mobile-web-app-capable" content="yes">
