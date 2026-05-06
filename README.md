@@ -58,7 +58,7 @@ Want goats on your website? Use the embed feature to add a goat widget anywhere!
 
 ### URL Parameters
 
-- `/GIFID` - Show a specific goat GIF
+- `/GIF id` or `/SHORTID` - Show a specific goat GIF
 - `?season=christmas` - Force Christmas theme
 - `?season=halloween` - Force Halloween theme
 
