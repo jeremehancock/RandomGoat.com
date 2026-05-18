@@ -66,7 +66,7 @@ Want goats on your website? Use the embed feature to add a goat widget anywhere!
 
 [MIT License](LICENSE)
 
-## AI Assistance Disclosure
+## AI Disclosure
 
 This site was originally developed without AI, but has since been rewritten using the assistance of AI.
 
