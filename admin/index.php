@@ -17,16 +17,52 @@ $adminPassword = $_ENV['ADMIN_PASSWORD'] ?? getenv('ADMIN_PASSWORD');
 // Check if user is logged in
 $isLoggedIn = isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true;
 
+// Failed login limit: after 10 failures in 15 minutes, logins are refused until
+// the oldest one is more than 15 minutes old. The site sits behind proxies, so
+// every request arrives from the same internal address and the limit is shared
+// by everyone rather than kept per visitor. The count lives in the container's
+// /tmp, so a redeploy (a new container) clears it; a plain restart does not.
+$loginFailuresFile = sys_get_temp_dir() . '/randomgoat-login-failures.json';
+$maxLoginFailures = 10;
+$loginFailureWindow = 15 * 60;
+
+// Function to read the failed login times still inside the window, oldest first
+function getRecentLoginFailures($file, $window)
+{
+    $failures = json_decode((string) @file_get_contents($file), true);
+    if (!is_array($failures)) {
+        return [];
+    }
+    $cutoff = time() - $window;
+    return array_values(array_filter($failures, function ($time) use ($cutoff) {
+        return is_int($time) && $time > $cutoff;
+    }));
+}
+
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
+    $username = (string) ($_POST['username'] ?? '');
+    $password = (string) ($_POST['password'] ?? '');
+    $failures = getRecentLoginFailures($loginFailuresFile, $loginFailureWindow);
 
-    if ($username === $adminUsername && $password === $adminPassword) {
+    // Credentials must be configured, and are compared in constant time so the
+    // response time does not reveal how much of a guess was right.
+    $credentialsConfigured = is_string($adminUsername) && $adminUsername !== ''
+        && is_string($adminPassword) && $adminPassword !== '';
+
+    if (count($failures) >= $maxLoginFailures) {
+        $minutes = max(1, (int) ceil(($failures[0] + $loginFailureWindow - time()) / 60));
+        $loginError = "Too many failed login attempts. Try again in {$minutes} minute(s).";
+    } elseif ($credentialsConfigured && hash_equals($adminUsername, $username) && hash_equals($adminPassword, $password)) {
+        @unlink($loginFailuresFile);
+        // A fresh session id, so one planted before login cannot be reused after it.
+        session_regenerate_id(true);
         $_SESSION['logged_in'] = true;
         header('Location: ' . $_SERVER['PHP_SELF']);
         exit;
     } else {
+        $failures[] = time();
+        @file_put_contents($loginFailuresFile, json_encode($failures), LOCK_EX);
         $loginError = 'Invalid username or password';
     }
 }
@@ -124,7 +160,6 @@ function downloadGifFromUrl($url, $destinationPath)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HEADER, false);
     curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
 
@@ -132,7 +167,6 @@ function downloadGifFromUrl($url, $destinationPath)
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     $error = curl_error($ch);
-    curl_close($ch);
 
     // Check for cURL errors
     if ($error) {
@@ -196,13 +230,11 @@ function downloadGifFromGiphy($giphyId, $destinationPath)
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36');
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_HEADER, false);
 
     $gifData = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
-    curl_close($ch);
 
     // Check for cURL errors
     if ($error) {

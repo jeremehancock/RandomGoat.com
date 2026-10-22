@@ -1,0 +1,25 @@
+# randomgoat.com, served by PHP's built-in web server.
+#
+# This replaces the nixpacks build. nixpacks took PHP from a pinned package
+# snapshot, which left the site on PHP 8.3.15 and exposed it to PHP2Shell
+# (CVE-2026-109618 / CVE-2026-109619). The official image is updated within a
+# day or so of each PHP release.
+#
+# `8.5-cli` is a moving tag: every fresh build gets the newest 8.5 patch release.
+# A running container never updates itself. A redeploy in Coolify is what picks
+# up a new release, and .github/workflows/php-currency.yml checks weekly that one
+# has happened.
+FROM php:8.5-cli
+
+COPY docker/php.ini "$PHP_INI_DIR/conf.d/randomgoat.ini"
+
+WORKDIR /app
+COPY . .
+
+# Coolify's "Ports Exposes" setting must match this.
+ENV PORT=8080
+EXPOSE 8080
+
+# No USER line: docker/start.sh starts as root only to hand data/ and goats/
+# (Coolify's persistent volumes) to www-data, then runs PHP as www-data.
+CMD ["/app/docker/start.sh"]

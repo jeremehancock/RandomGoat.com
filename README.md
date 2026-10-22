@@ -62,6 +62,34 @@ Want goats on your website? Use the embed feature to add a goat widget anywhere!
 - `?season=christmas` - Force Christmas theme
 - `?season=halloween` - Force Halloween theme
 
+## 🚢 Deployment
+
+randomgoat.com runs on Coolify from the `Dockerfile` in this repository, on the official `php:8.5-cli` image with
+PHP's built-in web server. `router.php` keeps the repository's internal files off the site.
+
+Coolify settings for the app:
+
+- **Build Pack:** Dockerfile
+- **Ports Exposes:** 8080
+- **Persistent storage:** `/app/data` (goats.json) and `/app/goats` (the GIFs)
+- **Environment variables:** `ADMIN_USERNAME` and `ADMIN_PASSWORD` for `/admin/`
+
+The admin login refuses all logins for up to 15 minutes after 10 failed attempts, counted across everyone. If that
+locks you out during an attack, wait it out or redeploy in Coolify, which starts a fresh container and clears the count.
+
+PHP runs as `www-data`. On each start, `docker/start.sh` makes `www-data` the owner of anything in the two volumes it
+does not already own, so the admin page can write to them.
+
+### Keeping PHP up to date
+
+`php:8.5-cli` is a moving tag, so each fresh build picks up the newest PHP 8.5 patch release. A running container
+never updates itself: **redeploy in Coolify to pick up a new PHP release.**
+
+The **PHP currency** workflow (`.github/workflows/php-currency.yml`) checks every Monday that the live site runs the
+newest 8.5 release and fails, which sends an email, when it does not. It can also be run by hand from the Actions tab.
+GitHub turns scheduled workflows off after 60 days without activity in the repository and emails a warning first;
+re-enable it from the Actions tab when that happens.
+
 ## 📜 License
 
 [MIT License](LICENSE)
