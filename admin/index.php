@@ -132,7 +132,6 @@ function downloadGifFromUrl($url, $destinationPath)
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     $error = curl_error($ch);
-    curl_close($ch);
 
     // Check for cURL errors
     if ($error) {
@@ -202,7 +201,6 @@ function downloadGifFromGiphy($giphyId, $destinationPath)
     $gifData = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
-    curl_close($ch);
 
     // Check for cURL errors
     if ($error) {

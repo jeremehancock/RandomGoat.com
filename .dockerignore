@@ -1,0 +1,15 @@
+# Not part of the site. router.php also denies these at request time; leaving
+# them out of the image means they are not there at all.
+# docker/ stays in: the build needs docker/php.ini and docker/start.sh, and
+# router.php denies /docker.
+.git
+.github
+.dockerignore
+Dockerfile
+
+# data/ and goats/ are Coolify persistent volumes. Never bake a local copy of the
+# goats into the image; only the placeholder notes go in.
+data/*
+!data/.info
+goats/*
+!goats/.info
